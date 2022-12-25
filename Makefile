@@ -1,5 +1,8 @@
 .DEFAULT_GOAL := hello
 
+include .env
+export
+
 up: docker-up
 down: docker-down
 restart: down up
@@ -24,7 +27,7 @@ swag-api-v1:
 
 api-run:
 	go mod tidy && go mod download
-	CGO_ENABLED=0 go run cmd/api/main.go -logdir ./log --
+	CGO_ENABLED=0 go run -tags migrate cmd/api/main.go -logdir ./log --
 
 api-build-run:
 	CGO_ENABLED=0 go build -o apisrv cmd/api/main.go
@@ -36,12 +39,14 @@ api-test:
 mock:
 	docker run -v "$PWD"/project:/src -w /src vektra/mockery --all
 
-#migrate-create:
-	#migrate create -ext sql -dir database/migrations 'migrate_name'
+migrate-create:
+	migrate create -ext sql -dir database/migrations 'migrate_name'
 
 migrate-up:
-	migrate -path database/migrations -database '$(DATABASE_URL)?sslmode=disable' up
+	migrate -path database/migrations -database '$(DATABASE_URL)' up
 
+migrate-down:
+	migrate -path database/migrations -database '$(DATABASE_URL)' down
 
 linter-hadolint:
 	git ls-files --exclude='Dockerfile*' --ignored | xargs docker run --rm -i hadolint/hadolint

@@ -9,7 +9,6 @@ import (
 )
 
 func InitLogger(logLvl string, customLog io.Writer) {
-
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	var l zerolog.Level
@@ -33,6 +32,7 @@ func InitLogger(logLvl string, customLog io.Writer) {
 		multi := zerolog.MultiLevelWriter(consoleWriter, customLog)
 		log.Logger = zerolog.New(multi).With().Timestamp().Logger()
 	} else {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		log.Logger = log.Output(os.Stdout)
 	}
+
 }

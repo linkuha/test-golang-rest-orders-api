@@ -1,19 +1,30 @@
-version: '3.8'
+version: '3.9'
 
 services:
   api:
     build:
       dockerfile: ./docker/testing/go/Dockerfile
+    env_file:
+      - .env
+    environment:
+      APP_LOG_DIR: /var/log/
+      POSTGRES_HOST: postgres
+      DATABASE_URL: postgres://app:secret@postgres:5432/appnew?sslmode=disable
+    volumes:
+      - ./log:/var/log
     depends_on:
       - postgres
     networks:
       api-orders:
     ports:
-      - "3030:3000"
+      - "3000:3000"
+    command: sh -c "wait-for-it postgres:5432 -t 60 && /app/apisrv"
 
   postgres:
     build:
       context: ./docker/testing/postgresql
+    env_file:
+      - .env
     volumes:
       - api-orders-volume-postgres:/var/lib/postgresql/data
       - ./docker/testing/postgresql/initdb:/docker-entrypoint-initdb.d/

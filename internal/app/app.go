@@ -1,10 +1,9 @@
 package app
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/linkuha/test-golang-rest-orders-api/config"
-	"github.com/linkuha/test-golang-rest-orders-api/internal/delivery/httpserver/v1"
+	v1 "github.com/linkuha/test-golang-rest-orders-api/internal/delivery/httpserver/v1"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/repository"
 	"github.com/linkuha/test-golang-rest-orders-api/pkg/logger"
 	"github.com/linkuha/test-golang-rest-orders-api/pkg/srv/httpserver"
@@ -29,18 +28,16 @@ func Run(cfg *config.Config) {
 	log.Debug().Msgf("Config dump: %#v\n", cfg)
 
 	// Repository
-	db, err := newDB(cfg.EnvParams.PGurl)
+	db, err := newDB(&cfg.EnvParams)
 	if err != nil {
-		log.Fatal().Err(fmt.Errorf("app - Run - db.New: %w", err))
+		log.Fatal().Msgf("Can't connect to database: %s", err.Error())
 	}
-	defer func(db *sql.DB) {
-		_ = db.Close()
-	}(db)
+
 	repos := repository.NewRepository(db)
 
 	// HTTP Server
 	ctrl := v1.NewController(repos)
-	router := ctrl.ConfigureRoutes()
+	router := ctrl.ConfigureRoutes(cfg)
 	httpSrv := httpserver.New(router, httpserver.Port(cfg.EnvParams.Port))
 
 	// Waiting signal

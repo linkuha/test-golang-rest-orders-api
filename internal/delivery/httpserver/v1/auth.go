@@ -8,20 +8,25 @@ import (
 	"net/http"
 )
 
+type signInInput struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 // @Summary SignUp
 // @Tags auth
 // @Description create account
 // @ID create-account
 // @Accept  json
 // @Produce  json
-// @Param input body entity.User true "account info"
+// @Param input body signInInput true "account info"
 // @Success 200 {integer} string "id"
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
 // @Router /auth/sign-up [post]
 func (ctrl *Controller) signUp(ctx *gin.Context) {
-	var input entity.User
+	var input signInInput
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, "invalid input body")
@@ -29,7 +34,8 @@ func (ctrl *Controller) signUp(ctx *gin.Context) {
 	}
 
 	uc := user.NewUserUseCase(ctrl.repos.Users)
-	id, err := uc.Create(input)
+	u := entity.User{Username: input.Username, Password: input.Password}
+	id, err := uc.Create(u)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -38,11 +44,6 @@ func (ctrl *Controller) signUp(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"id": id,
 	})
-}
-
-type signInInput struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
 }
 
 // @Summary SignIn

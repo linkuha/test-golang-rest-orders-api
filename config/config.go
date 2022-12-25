@@ -1,7 +1,6 @@
 package config
 
 import (
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
@@ -21,11 +20,16 @@ type AppFlags struct {
 }
 
 type EnvParams struct {
-	Env      string `mapstructure:"APP_ENV"`
-	LogDir   string `mapstructure:"APP_LOG_DIR"`
-	LogLevel string `mapstructure:"APP_LOG_LEVEL"`
-	Port     string `mapstructure:"LISTEN_PORT"`
-	PGurl    string `mapstructure:"DATABASE_URL"`
+	Env         string `mapstructure:"APP_ENV"`
+	LogDir      string `mapstructure:"APP_LOG_DIR"`
+	LogLevel    string `mapstructure:"APP_LOG_LEVEL"`
+	Port        string `mapstructure:"LISTEN_PORT"`
+	PgHost      string `mapstructure:"POSTGRES_HOST"`
+	PgPort      string `mapstructure:"POSTGRES_PORT"`
+	PgUser      string `mapstructure:"POSTGRES_USER"`
+	PgPassword  string `mapstructure:"POSTGRES_PASSWORD"`
+	PgDB        string `mapstructure:"POSTGRES_DB"`
+	DatabaseURL string `mapstructure:"DATABASE_URL"`
 }
 
 type FileParams struct {
@@ -102,7 +106,7 @@ func getCurrentDir() string {
 	var dir string
 	currentPath, err := os.Executable()
 	if err != nil {
-		log.Fatal().Msg("Cant read current executable path")
+		panic("Cant read current executable path")
 	}
 	dir = filepath.Dir(currentPath)
 	return dir
