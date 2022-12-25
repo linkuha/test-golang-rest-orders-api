@@ -46,17 +46,6 @@ definitions:
       userID:
         type: string
     type: object
-  entity.User:
-    properties:
-      id:
-        type: string
-      password:
-        type: string
-      passwordHash:
-        type: string
-      username:
-        type: string
-    type: object
   v1.dataResponse:
     properties:
       data: {}
@@ -143,7 +132,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/entity.User'
+          $ref: '#/definitions/v1.signInInput'
       produces:
       - application/json
       responses:
@@ -760,4 +749,9 @@ paths:
       summary: Get profile
       tags:
       - profile
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

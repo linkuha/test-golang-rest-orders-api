@@ -21,9 +21,9 @@ func (uc *UseCase) GetAll() (*[]entity.Product, error) {
 	return uc.repo.GetAll()
 }
 
-func (uc *UseCase) Create(product entity.Product) (int, error) {
+func (uc *UseCase) Create(product entity.Product) (string, error) {
 	if err := product.Validate(); err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return uc.repo.Store(&product)

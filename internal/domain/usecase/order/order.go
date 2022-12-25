@@ -25,9 +25,9 @@ func (uc *UseCase) GetAllOrderProducts(orderID string) (*[]entity.OrderProductVi
 	return uc.repo.GetProducts(orderID)
 }
 
-func (uc *UseCase) Create(order entity.Order) (int, error) {
+func (uc *UseCase) Create(order entity.Order) (string, error) {
 	if err := order.Validate(); err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return uc.repo.Store(&order)

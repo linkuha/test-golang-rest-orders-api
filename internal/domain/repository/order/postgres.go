@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -22,7 +23,8 @@ func newOrderPostgresRepository(d *sql.DB) Repository {
 }
 
 func (r *repo) Get(id string) (*entity.Order, error) {
-	query := fmt.Sprintf("SELECT id, user_id, number FROM %s WHERE id = ?", ordersTableName)
+	query := fmt.Sprintf("SELECT id, user_id, number FROM %s WHERE id = $1", ordersTableName)
+	log.Debug().Msg("Query: " + query)
 	row := r.db.QueryRow(query, id)
 	order := entity.Order{}
 
@@ -34,7 +36,8 @@ func (r *repo) Get(id string) (*entity.Order, error) {
 }
 
 func (r *repo) GetAllByUserID(userID string) (*[]entity.Order, error) {
-	query := fmt.Sprintf("SELECT id, user_id, number FROM %s WHERE user_id = ?", ordersTableName)
+	query := fmt.Sprintf("SELECT id, user_id, number FROM %s WHERE user_id = $1", ordersTableName)
+	log.Debug().Msg("Query: " + query)
 	rows, err := r.db.Query(query, userID)
 	if err != nil {
 		return nil, err
@@ -61,7 +64,8 @@ func (r *repo) GetAllByUserID(userID string) (*[]entity.Order, error) {
 }
 
 func (r *repo) GetProducts(id string) (*[]entity.OrderProductView, error) {
-	query := fmt.Sprintf("SELECT product_id, amount FROM %s WHERE order_id = ?", orderProductsTableName)
+	query := fmt.Sprintf("SELECT product_id, amount FROM %s WHERE order_id = $1", orderProductsTableName)
+	log.Debug().Msg("Query: " + query)
 	rows, err := r.db.Query(query, id)
 	if err != nil {
 		return nil, err
@@ -86,19 +90,21 @@ func (r *repo) GetProducts(id string) (*[]entity.OrderProductView, error) {
 	return &products, nil
 }
 
-func (r *repo) Store(order *entity.Order) (int, error) {
-	var id int
-	query := fmt.Sprintf("INSERT INTO %s (number, user_id) VALUES (?, ?) RETURNING id", ordersTableName)
+func (r *repo) Store(order *entity.Order) (string, error) {
+	var id string
+	query := fmt.Sprintf("INSERT INTO %s (number, user_id) VALUES ($1, $2) RETURNING id", ordersTableName)
+	log.Debug().Msg("Query: " + query)
 	row := r.db.QueryRow(query, order.Number, order.UserID)
 	if err := row.Scan(&id); err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return id, nil
 }
 
 func (r *repo) Update(order *entity.Order) error {
-	query := fmt.Sprintf("UPDATE %s SET number = ?, user_id = ? WHERE id = ?", ordersTableName)
+	query := fmt.Sprintf("UPDATE %s SET number = $1, user_id = $2 WHERE id = $3", ordersTableName)
+	log.Debug().Msg("Query: " + query)
 	_, err := r.db.Exec(query, order.Number, order.UserID, order.ID)
 	if err != nil {
 		return err
@@ -108,7 +114,8 @@ func (r *repo) Update(order *entity.Order) error {
 }
 
 func (r *repo) Remove(id string) error {
-	query := fmt.Sprintf("DELETE FROM %s WHERE id = ?", ordersTableName)
+	query := fmt.Sprintf("DELETE FROM %s WHERE id = $1", ordersTableName)
+	log.Debug().Msg("Query: " + query)
 	_, err := r.db.Exec(query, id)
 	if err != nil {
 		return err
@@ -117,8 +124,9 @@ func (r *repo) Remove(id string) error {
 }
 
 func (r *repo) AddProduct(p *entity.OrderProduct) error {
-	query := fmt.Sprintf(`INSERT INTO %s (order_id, product_id, amount) VALUES (?, ?, ?)
+	query := fmt.Sprintf(`INSERT INTO %s (order_id, product_id, amount) VALUES ($1, $2, $3)
 		ON CONFLICT (order_id, product_id) DO UPDATE SET amount = %s.amount + EXCLUDED.amount`, orderProductsTableName, orderProductsTableName)
+	log.Debug().Msg("Query: " + query)
 	_, err := r.db.Exec(query, p.OrderID, p.ProductID, p.Amount)
 	if err != nil {
 		return err
@@ -128,7 +136,8 @@ func (r *repo) AddProduct(p *entity.OrderProduct) error {
 }
 
 func (r *repo) RemoveProduct(orderID, productID string) error {
-	query := fmt.Sprintf(`DELETE FROM %s WHERE order_id = ? AND product_id = ?`, orderProductsTableName)
+	query := fmt.Sprintf(`DELETE FROM %s WHERE order_id = $1 AND product_id = $2`, orderProductsTableName)
+	log.Debug().Msg("Query: " + query)
 	_, err := r.db.Exec(query, orderID, productID)
 	if err != nil {
 		return err

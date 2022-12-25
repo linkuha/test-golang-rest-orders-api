@@ -12,7 +12,7 @@ type Reader interface {
 }
 
 type Writer interface {
-	Store(product *entity.Product) (int, error)
+	Store(product *entity.Product) (string, error)
 	Update(id string, input *entity.ProductUpdateInput) error
 	Remove(id string) error
 	AddPrice(productId string, price *entity.Price) error

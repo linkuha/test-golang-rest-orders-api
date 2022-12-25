@@ -1,4 +1,4 @@
-//go:build migrate
+//go:build automigrate
 
 package app
 

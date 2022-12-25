@@ -27,14 +27,14 @@ func (uc *UseCase) GetUserIfCredentialsValid(username, password string) (*entity
 	return u, nil
 }
 
-func (uc *UseCase) Create(user entity.User) (int, error) {
+func (uc *UseCase) Create(user entity.User) (string, error) {
 	if err := user.Validate(); err != nil {
-		return 0, err
+		return "", err
 	}
 
 	encryptor := service.PasswordEncryptor{}
 	if err := user.BeforeCreate(&encryptor); err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return uc.repo.Store(&user)

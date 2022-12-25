@@ -12,7 +12,7 @@ type Reader interface {
 }
 
 type Writer interface {
-	Store(user *entity.User) (int, error)
+	Store(user *entity.User) (string, error)
 	Update(user *entity.User) error
 	Remove(id string) error
 	AddFollower(userID, followerID string) error

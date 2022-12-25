@@ -7,7 +7,7 @@ RUN set -x \
   && apk --no-cache add git \
   && go mod tidy && go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux go build -tags migrate -a -o apisrv cmd/api/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -tags automigrate -a -o apisrv cmd/api/main.go
 
 FROM alpine
 

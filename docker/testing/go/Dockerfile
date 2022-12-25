@@ -15,4 +15,4 @@ RUN go mod download && go mod tidy \
     && go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest \
     && rm -rf /var/cache/apk/*
 
-RUN CGO_ENABLED=0 GOOS=linux go build -tags migrate -a -o apisrv cmd/api/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -tags automigrate -a -o apisrv cmd/api/main.go

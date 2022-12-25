@@ -23,11 +23,11 @@ docker-build:
 	docker-compose build
 
 swag-api-v1:
-	swag init -g internal/delivery/httpserver/v1/router.go
+	swag init -g ./internal/delivery/httpserver/v1/router.go -o ./docs
 
 api-run:
 	go mod tidy && go mod download
-	CGO_ENABLED=0 go run -tags migrate cmd/api/main.go -logdir ./log --
+	CGO_ENABLED=0 go run -tags automigrate cmd/api/main.go -logdir ./log --
 
 api-build-run:
 	CGO_ENABLED=0 go build -o apisrv cmd/api/main.go

@@ -6,7 +6,7 @@ type Product struct {
 	ID          string
 	Name        string
 	Description string
-	LeftInStock int
+	LeftInStock int `json:"left_in_stock"`
 }
 
 type Price struct {

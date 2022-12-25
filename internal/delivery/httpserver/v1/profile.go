@@ -82,6 +82,7 @@ func (ctrl *Controller) getProfile(c *gin.Context) {
 // @ID profile-update
 // @Accept  json
 // @Produce  json
+// @Param input body entity.Profile true "profile data"
 // @Success 200 {object} statusResponse
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse

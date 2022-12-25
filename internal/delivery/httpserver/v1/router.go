@@ -3,7 +3,7 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/linkuha/test-golang-rest-orders-api/config"
-	_ "github.com/linkuha/test-golang-rest-orders-api/docs"
+	docs "github.com/linkuha/test-golang-rest-orders-api/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
@@ -16,6 +16,9 @@ import (
 // @version     1.0
 // @host        localhost:3000
 // @BasePath    /v1
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
 	router := gin.New()
 
@@ -24,7 +27,7 @@ func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
 	}
 
 	// Swagger
-	//docs.SwaggerInfo.Host = "localhost:" + cfg.EnvParams.Port
+	docs.SwaggerInfo.Host = "localhost:" + cfg.EnvParams.Port
 	swaggerHandler := ginSwagger.DisablingWrapHandler(swaggerFiles.Handler, "DISABLE_SWAGGER_HTTP_HANDLER")
 	router.GET("/swagger/*any", swaggerHandler)
 
@@ -42,7 +45,7 @@ func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
 			auth.POST("/sign-in", ctrl.signIn)
 		}
 
-		api := v1.Group("/api", ctrl.userIdentity)
+		api := v1.Group("/", ctrl.userIdentity)
 		{
 			profile := api.Group("/profile")
 			{

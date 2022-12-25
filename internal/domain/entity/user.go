@@ -8,7 +8,7 @@ type User struct {
 	ID           string
 	Username     string
 	Password     string
-	PasswordHash string
+	PasswordHash string `json:"password_hash"`
 	//Status       int
 	//Roles        string
 }

@@ -3,12 +3,12 @@ package entity
 import validation "github.com/go-ozzo/ozzo-validation"
 
 type Profile struct {
-	UserID     string
-	FirstName  string
-	LastName   string
-	MiddleName string
-	FullName   string
-	Sex        rune
+	UserID     string `json:"user_id"`
+	FirstName  string `json:"first_name"`
+	LastName   string `json:"last_name"`
+	MiddleName string `json:"middle_name"`
+	FullName   string `json:"full_name"`
+	Sex        string
 	Age        int
 }
 
@@ -24,9 +24,9 @@ func (u *Profile) Validate() error {
 }
 
 func (u *Profile) IsMan() bool {
-	return u.Sex == 'm'
+	return u.Sex == "m"
 }
 
 func (u *Profile) IsWoman() bool {
-	return u.Sex == 'w'
+	return u.Sex == "w"
 }
