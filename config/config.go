@@ -1,0 +1,184 @@
+package config
+
+import (
+	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
+	"os"
+	"path/filepath"
+)
+
+const (
+	Version           = "1.0.0beta"
+	DefaultLogDir     = "/var/log/app"
+	DefaultConfigPath = "./config/config.yml"
+	DefaultLogLevel   = "info"
+)
+
+type AppFlags struct {
+	LogDir     stringFlag
+	LogLevel   stringFlag
+	ConfigPath stringFlag
+}
+
+type EnvParams struct {
+	Env      string `mapstructure:"APP_ENV"`
+	LogDir   string `mapstructure:"APP_LOG_DIR"`
+	LogLevel string `mapstructure:"APP_LOG_LEVEL"`
+	Port     string `mapstructure:"LISTEN_PORT"`
+	PGurl    string `mapstructure:"DATABASE_URL"`
+}
+
+type FileParams struct {
+	Test string `mapstructure:"test_string"`
+}
+
+type MergedParams struct {
+	LogDir     string
+	LogLevel   string
+	ConfigPath string
+}
+
+type Config struct {
+	EnvParams  EnvParams
+	FileParams FileParams
+	flags      AppFlags
+	Merged     MergedParams
+}
+
+type stringFlag struct {
+	set   bool
+	value string
+}
+
+type boolFlag struct {
+	set   bool
+	value bool
+}
+
+func (sf *stringFlag) Set(x string) error {
+	sf.value = x
+	sf.set = true
+	return nil
+}
+
+func (sf *stringFlag) String() string {
+	return sf.value
+}
+
+func (sf *boolFlag) Set(x bool) error {
+	sf.value = x
+	sf.set = true
+	return nil
+}
+
+func (sf *boolFlag) String() string {
+	if sf.value == true {
+		return "true"
+	}
+	return "false"
+}
+
+func InitConfig(flags AppFlags) *Config {
+	currDir := getCurrentDir()
+	configPath := getConfigPath(currDir, flags)
+
+	env, _ := loadEnvFile(currDir)
+	yaml, _ := loadYmlFile(configPath)
+	cfg := &Config{
+		EnvParams:  env,
+		FileParams: yaml,
+		flags:      flags,
+		Merged: MergedParams{
+			LogLevel:   getLogLevel(env, flags),
+			LogDir:     getLogDir(env, flags),
+			ConfigPath: configPath,
+		},
+	}
+
+	return cfg
+}
+
+func getCurrentDir() string {
+	var dir string
+	currentPath, err := os.Executable()
+	if err != nil {
+		log.Fatal().Msg("Cant read current executable path")
+	}
+	dir = filepath.Dir(currentPath)
+	return dir
+}
+
+func loadEnvFile(dir string) (config EnvParams, err error) {
+	viper.AddConfigPath(dir)
+	viper.SetConfigFile(".env")
+
+	viper.AutomaticEnv()
+
+	err = viper.ReadInConfig()
+	if err != nil {
+		panic("Fail reading .env file")
+	}
+
+	err = viper.Unmarshal(&config)
+	if err != nil {
+		panic("Fail mapping configuration parameters (env)")
+	}
+	return config, nil
+}
+
+func loadYmlFile(configPath string) (config FileParams, err error) {
+	viper.SetConfigFile(configPath)
+
+	err = viper.ReadInConfig()
+	if err != nil {
+		panic("Fail reading configuration file " + configPath)
+	}
+
+	err = viper.Unmarshal(&config)
+	if err != nil {
+		panic("Fail mapping configuration parameters (yaml)")
+	}
+	return config, nil
+}
+
+func getConfigPath(currDir string, flags AppFlags) string {
+	var configPath string
+	if os.Getenv("APP_CONFIG_PATH") != "" {
+		configPath = os.Getenv("APP_CONFIG_PATH")
+	} else {
+		if flags.ConfigPath.set == true {
+			configPath = flags.ConfigPath.value
+		} else {
+			configPath = filepath.Join(currDir, DefaultConfigPath)
+		}
+	}
+	return configPath
+}
+
+func getLogDir(env EnvParams, flags AppFlags) string {
+	var logDir string
+	if env.LogDir != "" {
+		logDir = env.LogDir
+	} else {
+		if flags.LogDir.set == true {
+			logDir = flags.LogDir.value
+		} else {
+			logDir = DefaultLogDir
+		}
+	}
+	return logDir
+}
+
+func getLogLevel(env EnvParams, flags AppFlags) string {
+	var logLevel string
+	if env.LogLevel != "" {
+		logLevel = env.LogLevel
+	} else {
+		if flags.LogLevel.set == true {
+			logLevel = flags.LogLevel.value
+		} else {
+			logLevel = DefaultLogLevel
+		}
+	}
+	return logLevel
+}

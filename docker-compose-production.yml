@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+    env_file:
+      - .env.prod
+    environment:
+      APP_ENV: production
+      HTTP_LISTEN_PORT: 3000
+    depends_on:
+      - postgres
+    networks:
+      api-orders:
+    ports:
+      - "3030:3000"
+
+  postgres:
+    build:
+      context: ./docker/production/postgresql
+    env_file:
+      - .env.prod
+    volumes:
+      - api-orders-volume-postgres:/var/lib/postgresql/data
+    networks:
+      api-orders:
+    ports:
+      - "54321:5432"
+
+volumes:
+  api-orders-volume-postgres:
+
+networks:
+  api-orders:

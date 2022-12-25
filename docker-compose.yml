@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      dockerfile: ./docker/testing/go/Dockerfile
+    depends_on:
+      - postgres
+    networks:
+      api-orders:
+    ports:
+      - "3030:3000"
+
+  postgres:
+    build:
+      context: ./docker/testing/postgresql
+    volumes:
+      - api-orders-volume-postgres:/var/lib/postgresql/data
+      - ./docker/testing/postgresql/initdb:/docker-entrypoint-initdb.d/
+    networks:
+      api-orders:
+    ports:
+      - "54321:5432"
+
+volumes:
+  api-orders-volume-postgres:
+
+networks:
+  api-orders:
+
