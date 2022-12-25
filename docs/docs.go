@@ -901,6 +901,17 @@ const docTemplate = `{
                 ],
                 "summary": "Update profile",
                 "operationId": "profile-update",
+                "parameters": [
+                    {
+                        "description": "profile data",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.Profile"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1061,7 +1072,7 @@ const docTemplate = `{
                 "number": {
                     "type": "integer"
                 },
-                "userID": {
+                "user_id": {
                     "type": "string"
                 }
             }
@@ -1075,7 +1086,7 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "leftInStock": {
+                "left_in_stock": {
                     "type": "integer"
                 },
                 "name": {
@@ -1103,22 +1114,22 @@ const docTemplate = `{
                 "age": {
                     "type": "integer"
                 },
-                "firstName": {
+                "first_name": {
                     "type": "string"
                 },
-                "fullName": {
+                "full_name": {
                     "type": "string"
                 },
-                "lastName": {
+                "last_name": {
                     "type": "string"
                 },
-                "middleName": {
+                "middle_name": {
                     "type": "string"
                 },
                 "sex": {
-                    "type": "integer"
+                    "type": "string"
                 },
-                "userID": {
+                "user_id": {
                     "type": "string"
                 }
             }
