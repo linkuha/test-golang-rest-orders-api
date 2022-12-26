@@ -47,11 +47,11 @@ func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
 
 		api := v1.Group("/", ctrl.userIdentity)
 		{
-			profile := api.Group("/profile")
+			profile := api.Group("/profiles")
 			{
 				profile.POST("/", ctrl.createProfile)
-				profile.GET("/", ctrl.getProfile)
-				profile.PUT("/", ctrl.updateProfile)
+				profile.GET("/:id", ctrl.getProfile)
+				profile.PUT("/:id", ctrl.updateProfile)
 			}
 
 			products := api.Group("/products")

@@ -9,6 +9,13 @@ definitions:
       user_id:
         type: string
     type: object
+  entity.Price:
+    properties:
+      currency:
+        type: string
+      price:
+        type: string
+    type: object
   entity.Product:
     properties:
       description:
@@ -45,6 +52,15 @@ definitions:
         type: string
       user_id:
         type: string
+    type: object
+  v1.createProductInput:
+    properties:
+      prices:
+        items:
+          $ref: '#/definitions/entity.Price'
+        type: array
+      product:
+        $ref: '#/definitions/entity.Product'
     type: object
   v1.dataResponse:
     properties:
@@ -505,7 +521,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/entity.Product'
+          $ref: '#/definitions/v1.createProductInput'
       produces:
       - application/json
       responses:

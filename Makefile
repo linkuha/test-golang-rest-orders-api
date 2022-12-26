@@ -30,6 +30,7 @@ api-run:
 	CGO_ENABLED=0 go run -tags automigrate cmd/api/main.go -logdir ./log --
 
 api-build-run:
+	swag-api-v1
 	CGO_ENABLED=0 go build -o apisrv cmd/api/main.go
 	./apisrv -logdir ./log --
 

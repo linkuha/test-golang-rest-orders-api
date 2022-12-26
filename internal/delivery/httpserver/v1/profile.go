@@ -19,7 +19,7 @@ import (
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /profile [post]
+// @Router /profiles [post]
 func (ctrl *Controller) createProfile(c *gin.Context) {
 	var input entity.Profile
 
@@ -58,15 +58,11 @@ func (ctrl *Controller) createProfile(c *gin.Context) {
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /profile/:id [get]
+// @Router /profiles/:id [get]
 func (ctrl *Controller) getProfile(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+	id := c.Param("id")
 
-	p, err := ctrl.repos.Profiles.GetByUserID(userId)
+	p, err := ctrl.repos.Profiles.GetByUserID(id)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -87,7 +83,7 @@ func (ctrl *Controller) getProfile(c *gin.Context) {
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /profile [put]
+// @Router /profiles/:id [put]
 func (ctrl *Controller) updateProfile(c *gin.Context) {
 	var input entity.Profile
 
@@ -96,12 +92,18 @@ func (ctrl *Controller) updateProfile(c *gin.Context) {
 		return
 	}
 
-	userId, err := getUserId(c)
+	userID, err := getUserId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	input.UserID = userId
+	input.UserID = userID
+
+	id := c.Param("id")
+	if userID != id {
+		newErrorResponse(c, http.StatusForbidden, err.Error())
+		return
+	}
 
 	err = ctrl.repos.Profiles.Update(&input)
 	if err != nil {

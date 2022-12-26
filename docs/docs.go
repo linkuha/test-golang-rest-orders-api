@@ -678,7 +678,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/entity.Product"
+                            "$ref": "#/definitions/v1.createProductInput"
                         }
                     }
                 ],
@@ -1077,6 +1077,17 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.Price": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.Product": {
             "type": "object",
             "properties": {
@@ -1131,6 +1142,20 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.createProductInput": {
+            "type": "object",
+            "properties": {
+                "prices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Price"
+                    }
+                },
+                "product": {
+                    "$ref": "#/definitions/entity.Product"
                 }
             }
         },
