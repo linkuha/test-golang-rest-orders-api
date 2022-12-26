@@ -103,6 +103,42 @@ func (r *repo) Store(product *entity.Product) (string, error) {
 	return id, nil
 }
 
+func (r *repo) StoreWithPrices(product *entity.Product, prices []entity.Price) (string, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		log.Debug().Msg("Start transaction err: " + err.Error())
+		return "", err
+	}
+
+	id, err := r.Store(product)
+	if err != nil {
+		if rollBackErr := tx.Rollback(); rollBackErr != nil {
+			log.Debug().Msg("Rollback err: " + rollBackErr.Error())
+			return "", err
+		}
+		return "", err
+	}
+
+	for _, price := range prices {
+		err := r.AddPrice(id, &price)
+		if err != nil {
+			if rollBackErr := tx.Rollback(); rollBackErr != nil {
+				log.Debug().Msg("Rollback transaction err: " + rollBackErr.Error())
+				return "", err
+			}
+			return "", err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Debug().Msg("Commit transaction err: " + err.Error())
+		return "", err
+	}
+
+	return id, nil
+}
+
 func (r *repo) Update(id string, input *entity.ProductUpdateInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)

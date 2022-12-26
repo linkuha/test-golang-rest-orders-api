@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/usecase/order"
+	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/usecase/product"
 	"net/http"
 )
 
@@ -37,7 +38,7 @@ func (ctrl *Controller) addOrderProduct(c *gin.Context) {
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
 	o, err := uc.GetByID(input.OrderID)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusNotFound, err.Error())
 		return
 	}
 
@@ -46,7 +47,14 @@ func (ctrl *Controller) addOrderProduct(c *gin.Context) {
 		return
 	}
 
-	if err := uc.AddProduct(input); err != nil {
+	puc := product.NewProductUseCase(ctrl.repos.Products)
+	p, err := puc.GetByID(input.ProductID)
+	if err != nil {
+		newErrorResponse(c, http.StatusNotFound, err.Error())
+		return
+	}
+
+	if err := uc.AddProduct(p, &input); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}

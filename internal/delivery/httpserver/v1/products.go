@@ -7,6 +7,11 @@ import (
 	"net/http"
 )
 
+type createProductInput struct {
+	Product entity.Product
+	Prices  []entity.Price
+}
+
 // @Summary Create product
 // @Security ApiKeyAuth
 // @Tags product
@@ -14,14 +19,14 @@ import (
 // @ID product-create
 // @Accept  json
 // @Produce  json
-// @Param input body entity.Product true "product data"
+// @Param input body createProductInput true "product data"
 // @Success 200 {string} string "id"
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
 // @Router /products [post]
 func (ctrl *Controller) createProduct(c *gin.Context) {
-	var input entity.Product
+	var input createProductInput
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -29,7 +34,7 @@ func (ctrl *Controller) createProduct(c *gin.Context) {
 	}
 
 	uc := product.NewProductUseCase(ctrl.repos.Products)
-	id, err := uc.Create(input)
+	id, err := uc.CreateWithPrices(input.Product, input.Prices)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

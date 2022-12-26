@@ -49,7 +49,7 @@ func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
 		{
 			profile := api.Group("/profile")
 			{
-				profile.POST("/", ctrl.getProfile)
+				profile.POST("/", ctrl.createProfile)
 				profile.GET("/", ctrl.getProfile)
 				profile.PUT("/", ctrl.updateProfile)
 			}

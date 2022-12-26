@@ -1,6 +1,7 @@
 package order
 
 import (
+	"errors"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/repository/order"
 )
@@ -33,12 +34,16 @@ func (uc *UseCase) Create(order entity.Order) (string, error) {
 	return uc.repo.Store(&order)
 }
 
-func (uc *UseCase) AddProduct(p entity.OrderProduct) error {
+func (uc *UseCase) AddProduct(p *entity.Product, op *entity.OrderProduct) error {
 	if err := p.Validate(); err != nil {
 		return err
 	}
 
-	return uc.repo.AddProduct(&p)
+	if op.Amount > p.LeftInStock {
+		return errors.New("not enough amount in stock")
+	}
+
+	return uc.repo.AddProduct(op)
 }
 
 func (uc *UseCase) Remove(id string) error {
