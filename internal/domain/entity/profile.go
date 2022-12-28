@@ -1,6 +1,9 @@
 package entity
 
-import validation "github.com/go-ozzo/ozzo-validation"
+import (
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
+)
 
 type Profile struct {
 	UserID     string `json:"user_id"`
@@ -16,7 +19,7 @@ type Profile struct {
 func (u *Profile) Validate() error {
 	return validation.ValidateStruct(
 		u,
-		validation.Field(&u.UserID, validation.Required),
+		validation.Field(&u.UserID, validation.Required, is.UUIDv4),
 		validation.Field(&u.FirstName, validation.Required),
 		validation.Field(&u.LastName, validation.Required),
 		validation.Field(&u.Sex, validation.Required),

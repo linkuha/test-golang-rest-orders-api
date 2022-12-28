@@ -1,7 +1,9 @@
 package entity
 
 import (
-	validation "github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"regexp"
 )
 
 type User struct {
@@ -22,8 +24,10 @@ type PasswordEncryptor interface {
 func (u *User) Validate() error {
 	return validation.ValidateStruct(
 		u,
-		validation.Field(&u.Username, validation.Required),
-		validation.Field(&u.Password, validation.By(requiredIf(u.PasswordHash == "")), validation.Length(6, 100)),
+		validation.Field(&u.ID, is.UUIDv4),
+		validation.Field(&u.Username, validation.Required, validation.Match(regexp.MustCompile("^[a-zA-Z0-9_-]{3,255}$"))),
+		validation.Field(&u.Password, validation.Required.When(u.PasswordHash == ""), validation.Length(6, 100)),
+		validation.Field(&u.PasswordHash, validation.Required.When(u.Password == "")),
 	)
 }
 

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
     id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    username varchar NOT NULL UNIQUE,
+    username varchar(255) NOT NULL UNIQUE,
     password_hash varchar NOT NULL
 --     roles jsonb NOT NULL DEFAULT '{"user"}'
 --     status smallint NOT NULL,

@@ -103,7 +103,7 @@ func (r *repo) Store(product *entity.Product) (string, error) {
 	return id, nil
 }
 
-func (r *repo) StoreWithPrices(product *entity.Product, prices []entity.Price) (string, error) {
+func (r *repo) StoreWithPrices(product *entity.Product) (string, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		log.Debug().Msg("Start transaction err: " + err.Error())
@@ -119,7 +119,7 @@ func (r *repo) StoreWithPrices(product *entity.Product, prices []entity.Price) (
 		return "", err
 	}
 
-	for _, price := range prices {
+	for _, price := range product.Prices {
 		err := r.AddPrice(id, &price)
 		if err != nil {
 			if rollBackErr := tx.Rollback(); rollBackErr != nil {

@@ -124,6 +124,7 @@ func (r *repo) Remove(id string) error {
 }
 
 func (r *repo) AddProduct(p *entity.OrderProduct) error {
+	// idempotent
 	query := fmt.Sprintf(`INSERT INTO %s (order_id, product_id, amount) VALUES ($1, $2, $3)
 		ON CONFLICT (order_id, product_id) DO UPDATE SET amount = %s.amount + EXCLUDED.amount`, orderProductsTableName, orderProductsTableName)
 	log.Debug().Msg("Query: " + query)

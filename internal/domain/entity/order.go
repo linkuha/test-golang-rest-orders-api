@@ -1,6 +1,9 @@
 package entity
 
-import validation "github.com/go-ozzo/ozzo-validation"
+import (
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
+)
 
 type Order struct {
 	ID     string
@@ -24,7 +27,8 @@ type OrderProductView struct {
 func (m *Order) Validate() error {
 	return validation.ValidateStruct(
 		m,
-		validation.Field(&m.UserID, validation.Required),
+		validation.Field(&m.ID, is.UUIDv4),
+		validation.Field(&m.UserID, validation.Required, is.UUIDv4),
 		validation.Field(&m.Number, validation.Required),
 	)
 }
@@ -32,8 +36,8 @@ func (m *Order) Validate() error {
 func (m *OrderProduct) Validate() error {
 	return validation.ValidateStruct(
 		m,
-		validation.Field(&m.OrderID, validation.Required),
-		validation.Field(&m.ProductID, validation.Required),
+		validation.Field(&m.OrderID, validation.Required, is.UUIDv4),
+		validation.Field(&m.ProductID, validation.Required, is.UUIDv4),
 		validation.Field(&m.Amount, validation.Min(1)),
 	)
 }

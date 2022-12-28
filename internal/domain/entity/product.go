@@ -1,12 +1,16 @@
 package entity
 
-import validation "github.com/go-ozzo/ozzo-validation"
+import (
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
+)
 
 type Product struct {
 	ID          string
 	Name        string
 	Description string
 	LeftInStock int `json:"left_in_stock"`
+	Prices      []Price
 }
 
 type Price struct {
@@ -19,7 +23,9 @@ type Price struct {
 func (m *Product) Validate() error {
 	return validation.ValidateStruct(
 		m,
+		validation.Field(&m.ID, is.UUIDv4),
 		validation.Field(&m.Name, validation.Required),
+		validation.Field(&m.Prices),
 	)
 }
 
