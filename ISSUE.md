@@ -14,7 +14,8 @@
 *	age
 
 ### Order
-*	uuid - generates in DB number - номер заказа
+*	uuid - generates in DB 
+*	number - номер заказа
 
 ### Product
 *	uuid - generates in DB name
