@@ -3,6 +3,7 @@ package entity
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/service"
 	"regexp"
 )
 
@@ -13,11 +14,6 @@ type User struct {
 	PasswordHash string `json:"password_hash"`
 	//Status       int
 	//Roles        string
-}
-
-type PasswordEncryptor interface {
-	EncryptString(s string) (string, error)
-	CompareHashAndPassword(hash, password string) bool
 }
 
 // Validate ...
@@ -32,7 +28,7 @@ func (u *User) Validate() error {
 }
 
 // BeforeCreate ...
-func (u *User) BeforeCreate(encryptor PasswordEncryptor) error {
+func (u *User) BeforeCreate(encryptor service.PasswordEncryptor) error {
 	if len(u.Password) > 0 {
 		enc, err := encryptor.EncryptString(u.Password)
 		if err != nil {
@@ -46,7 +42,7 @@ func (u *User) BeforeCreate(encryptor PasswordEncryptor) error {
 }
 
 // ComparePassword ...
-func (u *User) ComparePassword(password string, encryptor PasswordEncryptor) bool {
+func (u *User) ComparePassword(password string, encryptor service.PasswordEncryptor) bool {
 	return encryptor.CompareHashAndPassword(u.PasswordHash, password)
 }
 
