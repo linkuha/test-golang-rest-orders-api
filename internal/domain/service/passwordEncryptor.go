@@ -10,10 +10,19 @@ const (
 	salt = "asdkjqw21e8h128hd12sa"
 )
 
-type PasswordEncryptor struct {
+type PasswordEncryptor interface {
+	EncryptString(s string) (string, error)
+	CompareHashAndPassword(hash, password string) bool
 }
 
-func (p PasswordEncryptor) EncryptString(s string) (string, error) {
+func NewPasswordEncryptor() PasswordEncryptorBcrypt {
+	return PasswordEncryptorBcrypt{}
+}
+
+type PasswordEncryptorBcrypt struct {
+}
+
+func (p PasswordEncryptorBcrypt) EncryptString(s string) (string, error) {
 	return encryptWithBcrypt(s)
 }
 
@@ -34,6 +43,6 @@ func encryptWithBcrypt(s string) (string, error) {
 }
 
 // CompareWithHash ...
-func (p PasswordEncryptor) CompareHashAndPassword(hash, password string) bool {
+func (p PasswordEncryptorBcrypt) CompareHashAndPassword(hash, password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
 }
