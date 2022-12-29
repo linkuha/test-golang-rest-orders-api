@@ -2,6 +2,8 @@ package entity_test
 
 import (
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
+	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/service"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -117,4 +119,10 @@ func TestValidateError(t *testing.T) {
 		err := tCase.in.Validate()
 		require.Error(t, err)
 	}
+}
+
+func TestBeforeCreate(t *testing.T) {
+	u := entity.TestUser(t)
+	assert.NoError(t, u.BeforeCreate(service.PasswordEncryptor{}))
+	assert.NotEmpty(t, u.PasswordHash)
 }
