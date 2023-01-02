@@ -5,23 +5,16 @@ import (
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
 )
 
-type Reader interface {
+type Repository interface {
 	Get(id string) (*entity.Order, error)
 	GetAllByUserID(userId string) (*[]entity.Order, error)
 	GetProducts(id string) (*[]entity.OrderProductView, error)
-}
 
-type Writer interface {
 	Store(order *entity.Order) (string, error)
 	Update(order *entity.Order) error
 	Remove(id string) error
 	AddProduct(p *entity.OrderProduct) error
 	RemoveProduct(orderID, productID string) error
-}
-
-type Repository interface {
-	Reader
-	Writer
 }
 
 func NewRepository(db *sql.DB) Repository {

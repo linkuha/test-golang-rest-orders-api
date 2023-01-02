@@ -1,4 +1,4 @@
-REST API of orders management (testing task)
+REST API of orders management ([testing task](./ISSUE.md))
 
 Works with database: PostgreSQL
 
@@ -46,11 +46,11 @@ PS: see [Makefile](./Makefile) for handy useful short commands (e.g. for build/r
 
 1. You can build and run app with help of Makefile: `make api-build-run`. 
 It will generate swag documentation, build binary and run with local installed compiler. 
-You must provide own env params like database connection in [.env](./.env) file. 
-App parse this params via Viper wide-known packed.
+You must provide own env params like database connection in [.env](./.env) file (based on .env.sample). 
+The app will parse this params via wide-known package Viper.
 
 2. You can build & run app and ready-to-use database (Postgres with enabled extension for UUID generating)
-for tests as production-similar version of app with Docker Compose: `make up`. 
+for tests as production-like version of app with Docker Compose: `make up`. 
 In that case you must not provide env params for database, it will be overwritten in [docker-compose.yml](./docker-compose.yml).
 Supporting of DATABASE_URL was used for ability of easy deploy on Heroku. 
 

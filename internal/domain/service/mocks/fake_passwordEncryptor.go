@@ -1,7 +1,7 @@
-package service_mocks
+package mock_service
 
 const (
-	salt = "asdkjqw21e8h128hd12sa"
+	salt = "test"
 )
 
 func NewPasswordEncryptor() PasswordEncryptorFake {

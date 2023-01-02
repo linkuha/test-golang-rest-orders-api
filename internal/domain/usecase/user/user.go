@@ -8,11 +8,12 @@ import (
 )
 
 type UseCase struct {
-	repo user.Repository
+	repo      user.Repository
+	encryptor service.PasswordEncryptor
 }
 
-func NewUserUseCase(repo user.Repository) *UseCase {
-	return &UseCase{repo: repo}
+func NewUserUseCase(repo user.Repository, encryptor service.PasswordEncryptor) *UseCase {
+	return &UseCase{repo, encryptor}
 }
 
 func (uc *UseCase) GetUserIfCredentialsValid(username, password string) (*entity.User, error) {
@@ -20,8 +21,8 @@ func (uc *UseCase) GetUserIfCredentialsValid(username, password string) (*entity
 	if err != nil {
 		return nil, err
 	}
-	encryptor := service.PasswordEncryptor{}
-	if !u.ComparePassword(password, &encryptor) {
+
+	if !u.ComparePassword(password, uc.encryptor) {
 		return nil, errors.New("invalid password")
 	}
 	return u, nil
@@ -32,8 +33,7 @@ func (uc *UseCase) Create(user entity.User) (string, error) {
 		return "", err
 	}
 
-	encryptor := service.PasswordEncryptor{}
-	if err := user.BeforeCreate(&encryptor); err != nil {
+	if err := user.BeforeCreate(uc.encryptor); err != nil {
 		return "", err
 	}
 

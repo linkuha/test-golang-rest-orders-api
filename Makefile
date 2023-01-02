@@ -3,6 +3,10 @@
 include .env
 export
 
+help: ## Display this help screen
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+.PHONY: help
+
 up: docker-up
 down: docker-down
 restart: down up
@@ -56,14 +60,14 @@ mock-gomock:
 	mockgen.exe -source=internal/domain/service/passwordEncryptor.go \
 	      -destination=internal/domain/service/mocks/mock_passwordEncryptor.go
 
-MOCKS_DESTINATION=mocks
-.PHONY: mocks
+MOCKS_DESTINATION=internal/mocks
 # put the files with interfaces you'd like to mock in prerequisites
 # wildcards are allowed
-mocks: internal/domain/service/passwordEncryptor.go
+mocks: internal/domain/repository/*/*
 	@echo "Generating mocks..."
 	@rm -rf $(MOCKS_DESTINATION)
 	@for file in $^; do ./mockgen.exe -source=$$file -destination=$(MOCKS_DESTINATION)/$$file; done
+.PHONY: mocks
 
 cover:
 	go test -short -count=1 -race -coverprofile=coverage.out ./...
