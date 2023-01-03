@@ -65,3 +65,14 @@ func (uc *UseCase) Update(user entity.User) error {
 	}
 	return nil
 }
+
+func (uc *UseCase) AddFollower(follower entity.Follower) error {
+	if err := follower.Validate(); err != nil {
+		return fmt.Errorf("validate error: %w", err)
+	}
+
+	if err := uc.repo.AddFollower(follower.UserID, follower.FollowerID); err != nil {
+		return fmt.Errorf("err from user repository: %w", err)
+	}
+	return nil
+}

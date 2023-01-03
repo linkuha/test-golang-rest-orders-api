@@ -33,7 +33,8 @@ func (ctrl *Controller) signUp(ctx *gin.Context) {
 		return
 	}
 
-	uc := user.NewUserUseCase(ctrl.repos.Users)
+	encryptor := service.NewPasswordEncryptor()
+	uc := user.NewUserUseCase(ctrl.repos.Users, encryptor)
 	u := entity.User{Username: input.Username, Password: input.Password}
 	id, err := uc.Create(u)
 	if err != nil {
@@ -66,7 +67,8 @@ func (ctrl *Controller) signIn(ctx *gin.Context) {
 		return
 	}
 
-	uc := user.NewUserUseCase(ctrl.repos.Users)
+	encryptor := service.NewPasswordEncryptor()
+	uc := user.NewUserUseCase(ctrl.repos.Users, encryptor)
 	u, err := uc.GetUserIfCredentialsValid(input.Username, input.Password)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusUnauthorized, "Invalid username or password")

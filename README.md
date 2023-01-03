@@ -17,16 +17,20 @@ You can use OpenAPI configuration for research from testing section below.
 * Намерено выбрана стандартная либа для общения с БД (database/sql, драйвер lib/pq). 
 Можно использовать более мощный и удобный jackc/pgx и удобный fluent билдер запросов (masterminds/squirrel).
 Но это тестовый пример, этого достаточно.
+* Миграции подымаются автоматически при запуске приложения через golang-migrate/migrate/v4. 
 * Не использую ORM (gorm или другие), т.к. это не очень GO-friendly подход, тяреем по скорости (много рефлексии)
 * Сущность user намерено не соответствует ТЗ. Решил усложнить, отделить сущность профиля от кредов. 
 Нет нужды таскать с собой все данные, профиль может расширяться. В этом кейсе профиль можно создать другим этапом после регистрации.
-Апи закрыто. Есть другой подход - хранение ID авторизационной сессии в куках, но мне он меньше нравится
+Апи закрыто токеном JWT. Есть другой подход - хранение ID авторизационной сессии в куках, но мне он меньше нравится
 * Реализован middleware для авторизации запросов пользователя к API через JWT токен
 * Валидация в моделях, используется пакет go-ozzo/ozzo-validation/v4, чтобы не дублировать похожий код.
 * Для валидации на уровне биндинга структуры из запроса используется стандартные теги валидации - валидатора GIN - go-playground/validator
 * В репозитории продукта входной аргумент - не модель, а DTO ProductUpdateInput, был сделан для возможности присылать только те поля,
 которые мы хотим изменить. Новый для меня подход, раньше просто перезаписывал все поля.
-* Будет написано по 3 теста на слой. Сейчас написаны только для сущностей (проверяется валидация модельки), остальное в TODO
+* Не во всех хэндлерах логика вынесена в юзкейс, а используется репозиторий напрямую - доделать.
+* Написаны unit-тесты для сущностей (проверяется валидация модельки).
+* Написаны unit-тесты для слоя use case для работы с User.
+* Будет написано по 3 теста на слой.
 
 ## Development environment
 
@@ -40,7 +44,9 @@ go install github.com/swaggo/swag/cmd/swag@latest
 go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 ```
 
-PS: see [Makefile](./Makefile) for handy useful short commands (e.g. for build/run/test)
+PS: see [Makefile](./Makefile) for handy useful short commands (e.g. for build/run/test), run `make help`
+
+For example, generate dummy file for migrations, located in `database/migrations` directory: `make migrate-create`.
 
 ### Build
 

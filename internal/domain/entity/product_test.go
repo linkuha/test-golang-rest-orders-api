@@ -14,7 +14,7 @@ func TestProductValidateOK(t *testing.T) {
 	}{
 		{
 			name: "ok_without_id",
-			in:   &entity.Product{},
+			in:   &entity.Product{Name: "qwerty"},
 		},
 	}
 

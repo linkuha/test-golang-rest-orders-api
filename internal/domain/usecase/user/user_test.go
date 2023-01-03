@@ -233,3 +233,74 @@ func TestUpdateDbError(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, expectedErr.Error())
 }
+
+func TestAddFollower(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mockUser.NewMockRepository(ctrl)
+
+	follower := entity.TestFollower(t)
+
+	repo.EXPECT().AddFollower(follower.UserID, follower.FollowerID).Return(nil).Times(1)
+
+	encryptor := mockService.NewPasswordEncryptor()
+	useCase := user.NewUserUseCase(repo, encryptor)
+	err := useCase.AddFollower(*follower)
+	require.NoError(t, err)
+}
+
+func TestAddFollowerValidateError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mockUser.NewMockRepository(ctrl)
+
+	follower := entity.Follower{
+		UserID:     "c401f9dc-1e68-4b44-82d9-3a93b09e3fe7",
+		FollowerID: "",
+	}
+
+	encryptor := mockService.NewPasswordEncryptor()
+	useCase := user.NewUserUseCase(repo, encryptor)
+	err := useCase.AddFollower(follower)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "validate error")
+}
+
+func TestAddFollowerSameIDError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mockUser.NewMockRepository(ctrl)
+
+	follower := entity.Follower{
+		UserID:     "c401f9dc-1e68-4b44-82d9-3a93b09e3fe7",
+		FollowerID: "c401f9dc-1e68-4b44-82d9-3a93b09e3fe7",
+	}
+
+	encryptor := mockService.NewPasswordEncryptor()
+	useCase := user.NewUserUseCase(repo, encryptor)
+	err := useCase.AddFollower(follower)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "validate error")
+}
+
+func TestAddFollowerDbError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mockUser.NewMockRepository(ctrl)
+	dbErr := errors.New("db is down")
+
+	follower := entity.TestFollower(t)
+
+	repo.EXPECT().AddFollower(follower.UserID, follower.FollowerID).Return(dbErr).Times(1)
+	expectedErr := fmt.Errorf("err from user repository: %w", dbErr)
+
+	encryptor := mockService.NewPasswordEncryptor()
+	useCase := user.NewUserUseCase(repo, encryptor)
+	err := useCase.AddFollower(*follower)
+	require.Error(t, err)
+	require.EqualError(t, err, expectedErr.Error())
+}
