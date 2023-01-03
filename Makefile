@@ -4,50 +4,50 @@ include .env
 export
 
 help: ## Display this help screen
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 .PHONY: help
 
 up: docker-up
 down: docker-down
 restart: down up
 
-docker-up:
+docker-up: ## docker up
 	docker-compose up -d
 
-docker-down:
+docker-down: ## ..down and clean containers
 	docker-compose down --remove-orphans
 
-docker-down-clear:
+docker-down-clear: ## ..down and clean with volumes
 	docker-compose down -v --remove-orphans
 
-docker-pull:
+docker-pull: ## ..pull
 	docker-compose pull
 
-docker-build:
+docker-build: ## ..build
 	docker-compose build
 
-swag-api-v1:
+swag-api-v1: ## generate OpenAPI for api v1
 	swag init -g ./internal/delivery/httpserver/v1/router.go -o ./docs
 
-api-run:
+api-run: ## run app
 	go mod tidy && go mod download
 	CGO_ENABLED=0 go run -tags automigrate cmd/api/main.go -logdir ./log --
 
-api-build-run:
+api-build-run: ## build OpenAPI, build and run app
 	swag-api-v1
 	CGO_ENABLED=0 go build -o apisrv cmd/api/main.go
 	./apisrv -logdir ./log --
 
-migrate-create:
+migrate-create: ## create dummy migrations file
 	migrate create -ext sql -dir database/migrations 'migrate_name'
 
-migrate-up:
+migrate-up: ## migrations apply
 	migrate -path database/migrations -database '$(DATABASE_URL)' up
 
-migrate-down:
+migrate-down: ## migrations rollback
 	migrate -path database/migrations -database '$(DATABASE_URL)' down
 
-api-test:
+api-test: ## run tests for api
 	go test -v ./...
 
 mock-testify:
@@ -63,20 +63,20 @@ mock-gomock:
 MOCKS_DESTINATION=internal/mocks
 # put the files with interfaces you'd like to mock in prerequisites
 # wildcards are allowed
-mocks: internal/domain/repository/*/*
+mocks: internal/domain/repository/*/* ## generate mocks to ./mocks (for repositories)
 	@echo "Generating mocks..."
 	@rm -rf $(MOCKS_DESTINATION)
 	@for file in $^; do ./mockgen.exe -source=$$file -destination=$(MOCKS_DESTINATION)/$$file; done
 .PHONY: mocks
 
-cover:
+cover: ## get coverage profile
 	go test -short -count=1 -race -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out
 	rm coverage.out
 
-linter-hadolint:
+linter-hadolint: ## run linter for dockerfiles
 	git ls-files --exclude='Dockerfile*' --ignored | xargs docker run --rm -i hadolint/hadolint
 
-hello:
+hello: ## hello
 	@echo "Welcome to commands shortcuts"
 
