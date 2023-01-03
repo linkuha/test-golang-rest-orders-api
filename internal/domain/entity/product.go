@@ -15,7 +15,7 @@ type Product struct {
 
 type Price struct {
 	Currency string
-	Price    string
+	Price    float64
 	//Status   string
 }
 

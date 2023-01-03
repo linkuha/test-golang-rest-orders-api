@@ -61,9 +61,9 @@ func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
 
 			products := api.Group("/products")
 			{
-				products.POST("/", ctrl.createProduct)
+				products.POST("/", ctrl.CreateProduct)
 				products.GET("/", ctrl.getAllProducts)
-				products.GET("/:id", ctrl.getProductByID)
+				products.GET("/:id", ctrl.GetProductByID)
 				products.PUT("/:id", ctrl.updateProductByID)
 				products.DELETE("/:id", ctrl.deleteProductByID)
 			}

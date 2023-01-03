@@ -14,6 +14,7 @@ You can use OpenAPI configuration for research from testing section below.
 
 * Намерено выбран для маршрутизации фреймворк GIN, т.к. обладает хорошоей производительностью и прост.
 Другой хороший gorilla/mux к сожалению переведён в архив до начала написания сервиса (декабрь 22), поэтому не был выбран.
+В качестве другого варианта можно было выбрать labstack/echo.
 * Намерено выбрана стандартная либа для общения с БД (database/sql, драйвер lib/pq). 
 Можно использовать более мощный и удобный jackc/pgx и удобный fluent билдер запросов (masterminds/squirrel).
 Но это тестовый пример, этого достаточно.
@@ -30,10 +31,11 @@ You can use OpenAPI configuration for research from testing section below.
 * По-хорошему, в хэндлеры должны передаваться на вход - DTO, а затем их несомые данные мапиться в сущности. Но такой подход наплодит
 много дополнительного когда. Поэтому в основном, мы передаём заведомо валидные сущности.
 * Не во всех хэндлерах логика вынесена в юзкейс, а используется репозиторий напрямую - доделать.
-* Написаны unit-тесты для слоя Entities (проверяется валидация модельки).
-* Написаны unit-тесты для слоя Use Cases для работы с User.
-* Написаны unit-тесты для слоя Repositories для работы с User.
-* Написаны integration-тесты для слоя Controllers (в процессе).
+* Написаны unit-тесты для слоя Entities (проверяется валидация моделей).
+* Написаны unit-тесты для слоя Use Cases для работы с сущностью User.
+* Написаны unit-тесты для слоя Repositories для работы с сущностью User.
+* Написаны integration-тесты для слоя Controllers для работы с сущностью Products. 
+Дальнейшее тестирование хендлеров - наплодит много кода, даже с учетом проработки табличных тестов.
 
 ## Development environment
 
@@ -43,11 +45,11 @@ Install tools on local machine:
 * swagger https://github.com/swaggo/swag for generating API documentation
 * migrate-tool  https://github.com/golang-migrate/migrate for make migrations
 ```
-go install github.com/swaggo/swag/cmd/swag@latest
+go install github.com/swaggo/swag/cmd/swag@latest 
 go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 ```
 
-PS: see [Makefile](./Makefile) for handy useful short commands (e.g. for build/run/test), run `make help`
+PS: see [Makefile](./Makefile) for handy useful short commands (e.g. for build/run/test), get help with `make help` command.
 
 For example, generate dummy file for migrations, located in `database/migrations` directory: `make migrate-create`.
 
@@ -82,11 +84,9 @@ todo
 
 ## TODO:
 - добавить теги binding в структуры моделей для GIN парсинга
-- перепроверить проброс ошибок, правильность их обертывания, создать новые типы доменных ошибок если нужно
+- перепроверить проброс ошибок, правильность их обертывания, создать и использовать новые типы ошибок
 - добавить проброс контекста в слой репозиториев, чтобы отменять запросы к БД при сбоях
-- внедрить ответ со статусом http.StatusUnprocessableEntity
-- написать тесты 3-х репозиториев через моки/тестовое хранилище
-- написать тесты 3-х хэндлеров апи 
+- внедрить ответ со статусом http.StatusUnprocessableEntity на ошибки валидации
 - перепроверить всё апи через postman, фиксить баги если будут
 - добавить middleware для CORS (опционально)
 - добавить middleware для генерации и сохранении в хэдэр ответа ID запроса (опционально)

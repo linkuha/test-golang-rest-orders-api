@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// CreateProduct
 // @Summary Create product
 // @Security ApiKeyAuth
 // @Tags product
@@ -20,18 +21,18 @@ import (
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
 // @Router /products [post]
-func (ctrl *Controller) createProduct(c *gin.Context) {
+func (ctrl *Controller) CreateProduct(c *gin.Context) {
 	var input entity.Product
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, MalformedRequest.Error())
 		return
 	}
 
 	uc := product.NewProductUseCase(ctrl.repos.Products)
 	id, err := uc.CreateWithPrices(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, ServiceError.Error())
 		return
 	}
 
@@ -40,6 +41,7 @@ func (ctrl *Controller) createProduct(c *gin.Context) {
 	})
 }
 
+// GetProductByID
 // @Summary Get product
 // @Security ApiKeyAuth
 // @Tags product
@@ -52,13 +54,13 @@ func (ctrl *Controller) createProduct(c *gin.Context) {
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
 // @Router /products/:id [get]
-func (ctrl *Controller) getProductByID(c *gin.Context) {
+func (ctrl *Controller) GetProductByID(c *gin.Context) {
 	id := c.Param("id")
 
 	uc := product.NewProductUseCase(ctrl.repos.Products)
 	p, err := uc.GetByID(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, ServiceError.Error())
 		return
 	}
 
