@@ -2,6 +2,7 @@ package order
 
 import (
 	"errors"
+	"fmt"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/repository/order"
 )
@@ -15,49 +16,77 @@ func NewOrderUseCase(repo order.Repository) *UseCase {
 }
 
 func (uc *UseCase) GetByID(orderID string) (*entity.Order, error) {
-	return uc.repo.Get(orderID)
+	res, err := uc.repo.Get(orderID)
+	if err != nil {
+		return nil, fmt.Errorf("err from order repository: %w", err)
+	}
+	return res, nil
 }
 
 func (uc *UseCase) GetAllByUserID(userID string) (*[]entity.Order, error) {
-	return uc.repo.GetAllByUserID(userID)
+	res, err := uc.repo.GetAllByUserID(userID)
+	if err != nil {
+		return nil, fmt.Errorf("err from order repository: %w", err)
+	}
+	return res, nil
 }
 
 func (uc *UseCase) GetAllOrderProducts(orderID string) (*[]entity.OrderProductView, error) {
-	return uc.repo.GetProducts(orderID)
+	res, err := uc.repo.GetProducts(orderID)
+	if err != nil {
+		return nil, fmt.Errorf("err from order repository: %w", err)
+	}
+	return res, nil
 }
 
 func (uc *UseCase) Create(order entity.Order) (string, error) {
 	if err := order.Validate(); err != nil {
-		return "", err
+		return "", fmt.Errorf("validate error: %w", err)
 	}
 
-	return uc.repo.Store(&order)
+	res, err := uc.repo.Store(&order)
+	if err != nil {
+		return "", fmt.Errorf("err from order repository: %w", err)
+	}
+	return res, nil
 }
 
 func (uc *UseCase) AddProduct(p *entity.Product, op *entity.OrderProduct) error {
 	if err := p.Validate(); err != nil {
-		return err
+		return fmt.Errorf("validate error: %w", err)
 	}
 
 	if op.Amount > p.LeftInStock {
 		return errors.New("not enough amount in stock")
 	}
 
-	return uc.repo.AddProduct(op)
+	if err := uc.repo.AddProduct(op); err != nil {
+		return fmt.Errorf("err from order repository: %w", err)
+	}
+	return nil
 }
 
 func (uc *UseCase) Remove(id string) error {
-	return uc.repo.Remove(id)
+	if err := uc.repo.Remove(id); err != nil {
+		return fmt.Errorf("err from order repository: %w", err)
+	}
+	return nil
 }
 
 func (uc *UseCase) Update(order entity.Order) error {
 	if err := order.Validate(); err != nil {
-		return err
+		return fmt.Errorf("validate error: %w", err)
 	}
 
-	return uc.repo.Update(&order)
+	if err := uc.repo.Update(&order); err != nil {
+		return fmt.Errorf("err from order repository: %w", err)
+	}
+	return nil
 }
 
 func (uc *UseCase) RemoveProduct(orderID, productID string) error {
-	return uc.repo.RemoveProduct(orderID, productID)
+	if err := uc.repo.RemoveProduct(orderID, productID); err != nil {
+		return fmt.Errorf("err from order repository: %w", err)
+	}
+	return nil
 }
