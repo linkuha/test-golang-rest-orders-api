@@ -1,5 +1,12 @@
 basePath: /v1
 definitions:
+  entity.Follower:
+    properties:
+      follower_id:
+        type: string
+      user_id:
+        type: string
+    type: object
   entity.Order:
     properties:
       id:
@@ -26,6 +33,10 @@ definitions:
         type: integer
       name:
         type: string
+      prices:
+        items:
+          $ref: '#/definitions/entity.Price'
+        type: array
     type: object
   entity.ProductUpdateInput:
     properties:
@@ -52,15 +63,6 @@ definitions:
         type: string
       user_id:
         type: string
-    type: object
-  v1.createProductInput:
-    properties:
-      prices:
-        items:
-          $ref: '#/definitions/entity.Price'
-        type: array
-      product:
-        $ref: '#/definitions/entity.Product'
     type: object
   v1.dataResponse:
     properties:
@@ -175,6 +177,47 @@ paths:
       summary: SignUp
       tags:
       - auth
+  /followers:
+    post:
+      consumes:
+      - application/json
+      description: add follower
+      operationId: follower-add
+      parameters:
+      - description: follower data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Follower'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.statusResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Add follower
+      tags:
+      - follower
   /orders:
     get:
       consumes:
@@ -521,7 +564,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/v1.createProductInput'
+          $ref: '#/definitions/entity.Product'
       produces:
       - application/json
       responses:
@@ -657,7 +700,7 @@ paths:
       summary: Update product
       tags:
       - product
-  /profile:
+  /profiles:
     post:
       consumes:
       - application/json
@@ -698,6 +741,40 @@ paths:
       summary: Create profile
       tags:
       - profile
+  /profiles/:id:
+    get:
+      consumes:
+      - application/json
+      description: get profile
+      operationId: profile-get
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Profile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get profile
+      tags:
+      - profile
     put:
       consumes:
       - application/json
@@ -736,40 +813,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update profile
-      tags:
-      - profile
-  /profile/:id:
-    get:
-      consumes:
-      - application/json
-      description: get profile
-      operationId: profile-get
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.Profile'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-        default:
-          description: ""
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Get profile
       tags:
       - profile
 securityDefinitions:

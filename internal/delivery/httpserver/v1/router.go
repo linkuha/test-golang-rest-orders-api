@@ -54,6 +54,11 @@ func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
 				profile.PUT("/:id", ctrl.updateProfile)
 			}
 
+			followers := api.Group("/followers")
+			{
+				followers.POST("/", ctrl.addFollower)
+			}
+
 			products := api.Group("/products")
 			{
 				products.POST("/", ctrl.createProduct)

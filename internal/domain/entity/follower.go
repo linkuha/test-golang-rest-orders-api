@@ -16,5 +16,6 @@ func (u *Follower) Validate() error {
 		u,
 		validation.Field(&u.UserID, validation.Required, is.UUIDv4),
 		validation.Field(&u.FollowerID, validation.Required, is.UUIDv4),
+		validation.Field(&u.UserID, validation.NotIn(u.FollowerID)),
 	)
 }
