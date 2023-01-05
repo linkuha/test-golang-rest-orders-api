@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"github.com/linkuha/test-golang-rest-orders-api/config"
 	docs "github.com/linkuha/test-golang-rest-orders-api/docs"
@@ -23,6 +24,9 @@ func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
 	docs.SwaggerInfo.Host = "localhost:" + cfg.EnvParams.Port
 
 	router := gin.New()
+
+	router.Use(requestid.New(), ctrl.customLogRequest)
+	//router.Use(gin.LoggerWithWriter(log.Logger, "/status", "/healthz"))
 
 	if cfg.EnvParams.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)

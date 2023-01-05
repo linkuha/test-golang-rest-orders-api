@@ -40,8 +40,11 @@ You can use OpenAPI configuration for research from testing section below.
 * Написаны integration-тесты для слоя Controllers для работы с сущностью Products. 
 Дальнейшее тестирование хендлеров - наплодит много кода, даже с учетом проработки табличных тестов.
 * Проработаны кастомные типа ошибок, для клиента - более общие ошибки, корректные статусы ответов. 
-Для дебага - внутренние, с возможностью получения стека. Полезно, если добавить middleware с логированием request-id.
-* Фиксацию зависимостей в ./vendor через `go mod vendor` в git не произвожу.
+Для дебага - внутренние, с возможностью получения стека. 
+* Добавлен middleware для генерации и сохранении в хэдэр ответа - ID запроса (gin-contrib/requestid)
+* Реализован middleware для логирования времени исполнения запроса, его статуса. 
+Полезно, так как логируются клиентская и подробная внутренняя ошибки, с привязкой к request_id.
+* Добавлен проброс контекста в слой репозиториев, чтобы отменять запросы к БД при сбоях. Есть Graceful shutdown.
 
 ## Development environment
 
@@ -66,10 +69,14 @@ It will generate swag documentation, build binary and run with local installed c
 You must provide own env params like database connection in [.env](./.env) file (based on .env.sample). 
 The app will parse this params via wide-known package Viper.
 
+PS. Фиксацию зависимостей в ./vendor для git можно производить через `go mod vendor`. Тогда билдить командой `make api-build-run-vendor`.
+
 2. You can build & run app and ready-to-use database (Postgres with enabled extension for UUID generating)
 for tests as production-like version of app with Docker Compose: `make up`. 
 In that case you must not provide env params for database, it will be overwritten in [docker-compose.yml](./docker-compose.yml).
 Supporting of DATABASE_URL was used for ability of easy deploy on Heroku. 
+
+
 
 ## Testing
 
@@ -90,12 +97,9 @@ Coverage: `todo`
 todo
 
 ## TODO:
-- добавить проброс контекста в слой репозиториев, чтобы отменять запросы к БД при сбоях
 - перепроверить всё апи через postman / swagger UI, фиксить баги если будут
 - добавить пагинацию для хэндлеров GetAll - возвращающих коллекции (заголовками Pagination-, полями json и ответ 206 Partial Content)
 - добавить middleware для CORS (опционально)
-- добавить middleware для генерации и сохранении в хэдэр ответа ID запроса (опционально)
-- добавить middleware для записи ID запроса в лог, для связки с ошибками и отладки времени генерации ответа (опционально)
 - добавить настройки троттлинга запросов к API (aviddiviner/gin-limit, axiaoxin-com/ratelimiter middleware?) (ответ 429 Too Many Requests)
 - сделать правильный маппинг money во float ? (опционально, нет в ТЗ)
 - задеплоить сервис в heroku для демо
