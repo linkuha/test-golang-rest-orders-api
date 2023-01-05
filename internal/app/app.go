@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"github.com/linkuha/test-golang-rest-orders-api/config"
 	v1 "github.com/linkuha/test-golang-rest-orders-api/internal/delivery/httpserver/v1"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func Run(cfg *config.Config) {
@@ -19,24 +21,25 @@ func Run(cfg *config.Config) {
 	if err != nil {
 		panic("Failure to open log file " + logPath)
 	}
-	defer func() {
-		_ = logFile.Close()
-	}()
+	defer logFile.Close()
 	logger.InitLogger(cfg.Merged.LogLevel, logFile)
 
 	log.Info().Msg("Starting application...")
 	log.Debug().Msgf("Config dump: %#v\n", cfg)
+
+	ctx := context.Background()
 
 	// Repository
 	db, err := newDB(&cfg.EnvParams)
 	if err != nil {
 		log.Fatal().Msgf("Can't connect to database: %s", err.Error())
 	}
+	defer db.Close()
 
 	repos := repository.NewRepository(db)
 
 	// HTTP Server
-	ctrl := v1.NewController(repos)
+	ctrl := v1.NewController(ctx, repos)
 	router := ctrl.ConfigureRoutes(cfg)
 	httpSrv := httpserver.New(router, httpserver.Port(cfg.EnvParams.Port))
 
@@ -46,14 +49,21 @@ func Run(cfg *config.Config) {
 
 	select {
 	case s := <-interrupt:
-		log.Info().Msg("app - Run - signal: " + s.String())
-	case err := <-httpSrv.Notify():
-		log.Error().Msgf("app - Run - httpServer.Notify: %s", err.Error())
+		log.Info().Msg("app - termination signal: " + s.String())
+	case err = <-httpSrv.Notify():
+		log.Error().Msgf("app - httpServer error or stopped (ErrServerClosed): %s", err.Error())
 	}
 
 	log.Info().Msg("Graceful shutdown...")
-	err = httpSrv.Shutdown()
+	ctxTeardown, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	err = httpSrv.Shutdown(ctxTeardown)
 	if err != nil {
-		log.Error().Err(fmt.Errorf("app - Run - httpServer.Shutdown: %w", err))
+		log.Error().Err(fmt.Errorf("app - teardown - httpServer.Shutdown: %w", err))
 	}
+	// unplug from message broker
+	// unplug from service mesh
+	// remove temporary files
+	// wait for all pending queue/topic processor to finish
 }

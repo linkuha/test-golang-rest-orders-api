@@ -1,6 +1,7 @@
 package product
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
@@ -24,11 +25,11 @@ func newProductPostgresRepository(d *sql.DB) Repository {
 	}
 }
 
-func (r *repo) Get(id string) (*entity.Product, error) {
+func (r *repo) Get(ctx context.Context, id string) (*entity.Product, error) {
 	query := fmt.Sprintf("SELECT id, `name`, description, left_in_stock FROM %s WHERE id = $1", productTableName)
 	log.Debug().Msg("Query: " + query)
 
-	row := r.db.QueryRow(query, id)
+	row := r.db.QueryRowContext(ctx, query, id)
 	product := entity.Product{}
 
 	err := row.Scan(&product.ID, &product.Name, &product.Description, &product.LeftInStock)
@@ -38,11 +39,11 @@ func (r *repo) Get(id string) (*entity.Product, error) {
 	return &product, nil
 }
 
-func (r *repo) GetAll() (*[]entity.Product, error) {
+func (r *repo) GetAll(ctx context.Context) (*[]entity.Product, error) {
 	query := fmt.Sprintf("SELECT id, `name`, description, left_in_stock FROM %s", productTableName)
 	log.Debug().Msg("Query: " + query)
 
-	rows, err := r.db.Query(query)
+	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, errs.HandleErrorDB(err)
 	}
@@ -67,11 +68,11 @@ func (r *repo) GetAll() (*[]entity.Product, error) {
 	return &products, nil
 }
 
-func (r *repo) GetPrices(id string) (*[]entity.Price, error) {
+func (r *repo) GetPrices(ctx context.Context, id string) (*[]entity.Price, error) {
 	query := fmt.Sprintf("SELECT price, currency FROM %s WHERE product_id = $1", pricesTableName)
 	log.Debug().Msg("Query: " + query)
 
-	rows, err := r.db.Query(query, id)
+	rows, err := r.db.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, errs.HandleErrorDB(err)
 	}
@@ -95,12 +96,12 @@ func (r *repo) GetPrices(id string) (*[]entity.Price, error) {
 	return &prices, nil
 }
 
-func (r *repo) Store(product *entity.Product) (string, error) {
+func (r *repo) Store(ctx context.Context, product *entity.Product) (string, error) {
 	var id string
 	query := fmt.Sprintf("INSERT INTO %s (`name`, description, left_in_stock) VALUES ($1, $2, $3) RETURNING id", productTableName)
 	log.Debug().Msg("Query: " + query)
 
-	row := r.db.QueryRow(query, product.Name, product.Description, product.LeftInStock)
+	row := r.db.QueryRowContext(ctx, query, product.Name, product.Description, product.LeftInStock)
 	if err := row.Scan(&id); err != nil {
 		return "", errs.HandleErrorDB(err)
 	}
@@ -108,29 +109,36 @@ func (r *repo) Store(product *entity.Product) (string, error) {
 	return id, nil
 }
 
-func (r *repo) StoreWithPrices(product *entity.Product) (string, error) {
-	tx, err := r.db.Begin()
+func (r *repo) StoreWithPrices(ctx context.Context, product *entity.Product) (string, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		log.Debug().Msg("Start transaction err: " + err.Error())
 		return "", errs.HandleErrorDB(err)
 	}
+	defer tx.Rollback()
 
-	id, err := r.Store(product)
+	var productID string
+	query := fmt.Sprintf("INSERT INTO %s (`name`, description, left_in_stock) VALUES ($1, $2, $3) RETURNING id", productTableName)
+	log.Debug().Msg("Query: " + query)
+
+	row := tx.QueryRowContext(ctx, query, product.Name, product.Description, product.LeftInStock)
+	if err = row.Scan(&productID); err != nil {
+		return "", errs.HandleErrorDB(err)
+	}
+
+	query = fmt.Sprintf(`INSERT INTO %s (product_id, currency, price) VALUES ($1, $2, $3)
+		ON CONFLICT (product_id, currency) DO UPDATE SET price = EXCLUDED.price`, pricesTableName)
+	log.Debug().Msg("Query for stmt: " + query)
+
+	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
-		if rollBackErr := tx.Rollback(); rollBackErr != nil {
-			log.Debug().Msg("Rollback err: " + rollBackErr.Error())
-			return "", errs.HandleErrorDB(err)
-		}
+		log.Debug().Msg("Prepare stmt err: " + err.Error())
 		return "", errs.HandleErrorDB(err)
 	}
 
 	for _, price := range product.Prices {
-		err := r.AddPrice(id, &price)
+		_, err = stmt.ExecContext(ctx, productID, price.Currency, price.Price)
 		if err != nil {
-			if rollBackErr := tx.Rollback(); rollBackErr != nil {
-				log.Debug().Msg("Rollback transaction err: " + rollBackErr.Error())
-				return "", errs.HandleErrorDB(err)
-			}
 			return "", errs.HandleErrorDB(err)
 		}
 	}
@@ -141,10 +149,10 @@ func (r *repo) StoreWithPrices(product *entity.Product) (string, error) {
 		return "", errs.HandleErrorDB(err)
 	}
 
-	return id, nil
+	return productID, nil
 }
 
-func (r *repo) Update(id string, input *entity.ProductUpdateInput) error {
+func (r *repo) Update(ctx context.Context, id string, input *entity.ProductUpdateInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1
@@ -173,7 +181,7 @@ func (r *repo) Update(id string, input *entity.ProductUpdateInput) error {
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE id = $%d", productTableName, setQuery, argId)
 	log.Debug().Msg("Query: " + query)
 
-	_, err := r.db.Exec(query, args...)
+	_, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return errs.HandleErrorDB(err)
 	}
@@ -181,27 +189,25 @@ func (r *repo) Update(id string, input *entity.ProductUpdateInput) error {
 	return nil
 }
 
-func (r *repo) Remove(id string) error {
+func (r *repo) Remove(ctx context.Context, id string) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE id = $1", productTableName)
 	log.Debug().Msg("Query: " + query)
 
-	_, err := r.db.Exec(query, id)
+	_, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return errs.HandleErrorDB(err)
 	}
 	return nil
 }
 
-func (r *repo) AddPrice(productID string, price *entity.Price) error {
-	var id int
+func (r *repo) AddPrice(ctx context.Context, productID string, price *entity.Price) error {
 	query := fmt.Sprintf(`INSERT INTO %s (product_id, currency, price) VALUES ($1, $2, $3)
 		ON CONFLICT (product_id, currency) DO UPDATE SET price = EXCLUDED.price`, pricesTableName)
 	log.Debug().Msg("Query: " + query)
 
-	row := r.db.QueryRow(query, productID, price.Currency, price.Price)
-	if err := row.Scan(&id); err != nil {
+	_, err := r.db.ExecContext(ctx, query, productID, price.Currency, price.Price)
+	if err != nil {
 		return errs.HandleErrorDB(err)
 	}
-
 	return nil
 }

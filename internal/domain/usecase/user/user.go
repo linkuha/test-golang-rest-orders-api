@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"errors"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/errs"
@@ -17,8 +18,8 @@ func NewUserUseCase(repo user.Repository, encryptor service.PasswordEncryptor) *
 	return &UseCase{repo, encryptor}
 }
 
-func (uc *UseCase) GetUserIfCredentialsValid(username, password string) (*entity.User, error) {
-	u, err := uc.repo.GetByUsername(username)
+func (uc *UseCase) GetUserIfCredentialsValid(ctx context.Context, username, password string) (*entity.User, error) {
+	u, err := uc.repo.GetByUsername(ctx, username)
 	if err != nil {
 		return nil, errs.NewErrorWrapper(errs.Database, err, "error from user repo")
 	}
@@ -29,7 +30,7 @@ func (uc *UseCase) GetUserIfCredentialsValid(username, password string) (*entity
 	return u, nil
 }
 
-func (uc *UseCase) Create(user entity.User) (string, error) {
+func (uc *UseCase) Create(ctx context.Context, user entity.User) (string, error) {
 	if err := user.Validate(); err != nil {
 		return "", errs.NewErrorWrapper(errs.Validation, err, "user validation error")
 	}
@@ -38,21 +39,21 @@ func (uc *UseCase) Create(user entity.User) (string, error) {
 		return "", errs.NewErrorWrapper(errs.Internal, err, "encryptor error")
 	}
 
-	res, err := uc.repo.Store(&user)
+	res, err := uc.repo.Store(ctx, &user)
 	if err != nil {
 		return "", errs.NewErrorWrapper(errs.Database, err, "error from user repo")
 	}
 	return res, nil
 }
 
-func (uc *UseCase) Remove(user entity.User) error {
-	if err := uc.repo.Remove(user.ID); err != nil {
+func (uc *UseCase) Remove(ctx context.Context, user entity.User) error {
+	if err := uc.repo.Remove(ctx, user.ID); err != nil {
 		return errs.NewErrorWrapper(errs.Database, err, "error from user repo")
 	}
 	return nil
 }
 
-func (uc *UseCase) Update(user entity.User) error {
+func (uc *UseCase) Update(ctx context.Context, user entity.User) error {
 	if err := user.Validate(); err != nil {
 		return errs.NewErrorWrapper(errs.Validation, err, "user validation error")
 	}
@@ -60,18 +61,18 @@ func (uc *UseCase) Update(user entity.User) error {
 		return errs.NewErrorWrapper(errs.Validation, errors.New("empty password hash"), "user validation error")
 	}
 
-	if err := uc.repo.Update(&user); err != nil {
+	if err := uc.repo.Update(ctx, &user); err != nil {
 		return errs.NewErrorWrapper(errs.Database, err, "error from user repo")
 	}
 	return nil
 }
 
-func (uc *UseCase) AddFollower(follower entity.Follower) error {
+func (uc *UseCase) AddFollower(ctx context.Context, follower entity.Follower) error {
 	if err := follower.Validate(); err != nil {
 		return errs.NewErrorWrapper(errs.Validation, err, "follower validation error")
 	}
 
-	if err := uc.repo.AddFollower(follower.UserID, follower.FollowerID); err != nil {
+	if err := uc.repo.AddFollower(ctx, follower.UserID, follower.FollowerID); err != nil {
 		return errs.NewErrorWrapper(errs.Database, err, "error from user repo")
 	}
 	return nil

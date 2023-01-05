@@ -36,7 +36,7 @@ func (ctrl *Controller) signUp(ctx *gin.Context) {
 	encryptor := service.NewPasswordEncryptor()
 	uc := user.NewUserUseCase(ctrl.repos.Users, encryptor)
 	u := entity.User{Username: input.Username, Password: input.Password}
-	id, err := uc.Create(u)
+	id, err := uc.Create(ctrl.ctx, u)
 	if err != nil {
 		newErrorResponse(ctx, err)
 		return
@@ -69,7 +69,7 @@ func (ctrl *Controller) signIn(ctx *gin.Context) {
 
 	encryptor := service.NewPasswordEncryptor()
 	uc := user.NewUserUseCase(ctrl.repos.Users, encryptor)
-	u, err := uc.GetUserIfCredentialsValid(input.Username, input.Password)
+	u, err := uc.GetUserIfCredentialsValid(ctrl.ctx, input.Username, input.Password)
 	if err != nil {
 		newErrorResponse(ctx, err)
 		return

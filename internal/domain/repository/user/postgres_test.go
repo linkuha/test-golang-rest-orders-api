@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
@@ -14,13 +15,15 @@ func TestGet(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	id := "c401f9dc-1e68-4b44-82d9-3a93b09e3fe7"
 
 	mock.ExpectQuery("SELECT").WithArgs(id).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "username", "password"}).AddRow(id, "qwerty", "password"))
 
 	r := newUserPostgresRepository(db)
-	u, err := r.Get(id)
+	u, err := r.Get(ctx, id)
 	if err != nil {
 		t.Errorf("error was not expected while get user: %s", err)
 	}
@@ -40,13 +43,15 @@ func TestGetError(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	id := "c401f9dc-1e68-4b44-82d9-3a93b09e3fe7"
 
 	mock.ExpectQuery("SELECT").WithArgs(id).
 		WillReturnError(fmt.Errorf("some error"))
 
 	r := newUserPostgresRepository(db)
-	u, err := r.Get(id)
+	u, err := r.Get(ctx, id)
 	if err == nil {
 		t.Errorf("was expecting an error, but there was none")
 	}
@@ -66,6 +71,8 @@ func TestGetByUsername(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	username := "qwerty"
 	id := "c401f9dc-1e68-4b44-82d9-3a93b09e3fe7"
 
@@ -73,7 +80,7 @@ func TestGetByUsername(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id", "username", "password"}).AddRow(id, username, "password"))
 
 	r := newUserPostgresRepository(db)
-	u, err := r.GetByUsername(username)
+	u, err := r.GetByUsername(ctx, username)
 	if err != nil {
 		t.Errorf("error was not expected while get user: %s", err)
 	}
@@ -93,13 +100,15 @@ func TestGetByUsernameError(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	username := "qwerty"
 
 	mock.ExpectQuery("SELECT").WithArgs(username).
 		WillReturnError(fmt.Errorf("some error"))
 
 	r := newUserPostgresRepository(db)
-	u, err := r.GetByUsername(username)
+	u, err := r.GetByUsername(ctx, username)
 	if err == nil {
 		t.Errorf("was expecting an error, but there was none")
 	}
@@ -119,13 +128,15 @@ func TestStore(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	u := entity.TestExistUser(t)
 
 	query := fmt.Sprintf("INSERT INTO %s", userTableName)
 	mock.ExpectQuery(query).WithArgs(u.Username, u.PasswordHash).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(u.ID))
 
 	r := newUserPostgresRepository(db)
-	id, err := r.Store(u)
+	id, err := r.Store(ctx, u)
 	if err != nil {
 		t.Errorf("error was not expected while insert user: %s", err)
 	}
@@ -145,6 +156,8 @@ func TestStoreError(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	u := entity.TestExistUser(t)
 
 	query := fmt.Sprintf("INSERT INTO %s", userTableName)
@@ -152,7 +165,7 @@ func TestStoreError(t *testing.T) {
 		WillReturnError(fmt.Errorf("some error"))
 
 	r := newUserPostgresRepository(db)
-	if _, err := r.Store(u); err == nil {
+	if _, err := r.Store(ctx, u); err == nil {
 		t.Errorf("was expecting an error, but there was none")
 	}
 
@@ -168,6 +181,8 @@ func TestUpdate(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	u := entity.TestExistUser(t)
 
 	query := fmt.Sprintf("UPDATE %s", userTableName)
@@ -175,7 +190,7 @@ func TestUpdate(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	r := newUserPostgresRepository(db)
-	if err := r.Update(u); err != nil {
+	if err := r.Update(ctx, u); err != nil {
 		t.Errorf("error was not expected while insert user: %s", err)
 	}
 
@@ -191,6 +206,8 @@ func TestUpdateError(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	u := entity.TestExistUser(t)
 
 	query := fmt.Sprintf("UPDATE %s", userTableName)
@@ -198,7 +215,7 @@ func TestUpdateError(t *testing.T) {
 		WillReturnError(fmt.Errorf("some error"))
 
 	r := newUserPostgresRepository(db)
-	if err := r.Update(u); err == nil {
+	if err := r.Update(ctx, u); err == nil {
 		t.Errorf("was expecting an error, but there was none")
 	}
 
@@ -214,6 +231,8 @@ func TestRemove(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	id := "c401f9dc-1e68-4b44-82d9-3a93b09e3fe7"
 
 	query := fmt.Sprintf("DELETE FROM %s", userTableName)
@@ -221,7 +240,7 @@ func TestRemove(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	r := newUserPostgresRepository(db)
-	if err := r.Remove(id); err != nil {
+	if err := r.Remove(ctx, id); err != nil {
 		t.Errorf("error was not expected while insert user: %s", err)
 	}
 
@@ -237,6 +256,8 @@ func TestRemoveError(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	id := "c401f9dc-1e68-4b44-82d9-3a93b09e3fe7"
 
 	query := fmt.Sprintf("DELETE FROM %s", userTableName)
@@ -244,7 +265,7 @@ func TestRemoveError(t *testing.T) {
 		WillReturnError(fmt.Errorf("some error"))
 
 	r := newUserPostgresRepository(db)
-	if err := r.Remove(id); err == nil {
+	if err := r.Remove(ctx, id); err == nil {
 		t.Errorf("was expecting an error, but there was none")
 	}
 
@@ -260,6 +281,8 @@ func TestAddFollower(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	u1 := entity.TestExistUser(t)
 	u2 := entity.TestExistUser2(t)
 
@@ -268,7 +291,7 @@ func TestAddFollower(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	r := newUserPostgresRepository(db)
-	if err := r.AddFollower(u1.ID, u2.ID); err != nil {
+	if err := r.AddFollower(ctx, u1.ID, u2.ID); err != nil {
 		t.Errorf("error was not expected while insert user: %s", err)
 	}
 
@@ -284,6 +307,8 @@ func TestAddFollowerError(t *testing.T) {
 	}
 	defer db.Close()
 
+	ctx := context.Background()
+
 	u1 := entity.TestExistUser(t)
 	u2 := entity.TestExistUser2(t)
 
@@ -292,7 +317,7 @@ func TestAddFollowerError(t *testing.T) {
 		WillReturnError(fmt.Errorf("some error"))
 
 	r := newUserPostgresRepository(db)
-	if err := r.AddFollower(u1.ID, u2.ID); err == nil {
+	if err := r.AddFollower(ctx, u1.ID, u2.ID); err == nil {
 		t.Errorf("was expecting an error, but there was none")
 	}
 

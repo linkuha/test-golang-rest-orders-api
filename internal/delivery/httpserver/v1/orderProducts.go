@@ -37,7 +37,7 @@ func (ctrl *Controller) addOrderProduct(c *gin.Context) {
 	}
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
-	o, err := uc.GetByID(input.OrderID)
+	o, err := uc.GetByID(ctrl.ctx, input.OrderID)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -49,13 +49,13 @@ func (ctrl *Controller) addOrderProduct(c *gin.Context) {
 	}
 
 	puc := product.NewProductUseCase(ctrl.repos.Products)
-	p, err := puc.GetByID(input.ProductID)
+	p, err := puc.GetByID(ctrl.ctx, input.ProductID)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
 	}
 
-	if err = uc.AddProduct(p, &input); err != nil {
+	if err = uc.AddProduct(ctrl.ctx, p, &input); err != nil {
 		newErrorResponse(c, err)
 		return
 	}
@@ -90,7 +90,7 @@ func (ctrl *Controller) getAllOrderProducts(c *gin.Context) {
 	}
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
-	o, err := uc.GetByID(id)
+	o, err := uc.GetByID(ctrl.ctx, id)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -101,7 +101,7 @@ func (ctrl *Controller) getAllOrderProducts(c *gin.Context) {
 		return
 	}
 
-	orders, err := uc.GetAllOrderProducts(o.ID)
+	orders, err := uc.GetAllOrderProducts(ctrl.ctx, o.ID)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -140,7 +140,7 @@ func (ctrl *Controller) deleteOrderProduct(c *gin.Context) {
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
 
-	o, err := uc.GetByID(id)
+	o, err := uc.GetByID(ctrl.ctx, id)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -151,7 +151,7 @@ func (ctrl *Controller) deleteOrderProduct(c *gin.Context) {
 		return
 	}
 
-	if err := uc.RemoveProduct(id, productID); err != nil {
+	if err := uc.RemoveProduct(ctrl.ctx, id, productID); err != nil {
 		newErrorResponse(c, err)
 		return
 	}

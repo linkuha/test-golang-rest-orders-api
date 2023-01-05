@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -35,59 +36,59 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetByUserID mocks base method.
-func (m *MockRepository) GetByUserID(userID string) (*entity.Profile, error) {
+func (m *MockRepository) GetByUserID(ctx context.Context, userID string) (*entity.Profile, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByUserID", userID)
+	ret := m.ctrl.Call(m, "GetByUserID", ctx, userID)
 	ret0, _ := ret[0].(*entity.Profile)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByUserID indicates an expected call of GetByUserID.
-func (mr *MockRepositoryMockRecorder) GetByUserID(userID interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetByUserID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockRepository)(nil).GetByUserID), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockRepository)(nil).GetByUserID), ctx, userID)
 }
 
 // RemoveByUserID mocks base method.
-func (m *MockRepository) RemoveByUserID(userID string) error {
+func (m *MockRepository) RemoveByUserID(ctx context.Context, userID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveByUserID", userID)
+	ret := m.ctrl.Call(m, "RemoveByUserID", ctx, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RemoveByUserID indicates an expected call of RemoveByUserID.
-func (mr *MockRepositoryMockRecorder) RemoveByUserID(userID interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) RemoveByUserID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveByUserID", reflect.TypeOf((*MockRepository)(nil).RemoveByUserID), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveByUserID", reflect.TypeOf((*MockRepository)(nil).RemoveByUserID), ctx, userID)
 }
 
 // Store mocks base method.
-func (m *MockRepository) Store(profile *entity.Profile) (int, error) {
+func (m *MockRepository) Store(ctx context.Context, profile *entity.Profile) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Store", profile)
+	ret := m.ctrl.Call(m, "Store", ctx, profile)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Store indicates an expected call of Store.
-func (mr *MockRepositoryMockRecorder) Store(profile interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Store(ctx, profile interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Store", reflect.TypeOf((*MockRepository)(nil).Store), profile)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Store", reflect.TypeOf((*MockRepository)(nil).Store), ctx, profile)
 }
 
 // Update mocks base method.
-func (m *MockRepository) Update(profile *entity.Profile) error {
+func (m *MockRepository) Update(ctx context.Context, profile *entity.Profile) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", profile)
+	ret := m.ctrl.Call(m, "Update", ctx, profile)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockRepositoryMockRecorder) Update(profile interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Update(ctx, profile interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRepository)(nil).Update), profile)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRepository)(nil).Update), ctx, profile)
 }

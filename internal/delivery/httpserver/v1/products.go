@@ -30,7 +30,7 @@ func (ctrl *Controller) CreateProduct(c *gin.Context) {
 	}
 
 	uc := product.NewProductUseCase(ctrl.repos.Products)
-	id, err := uc.CreateWithPrices(input)
+	id, err := uc.CreateWithPrices(ctrl.ctx, input)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -63,7 +63,7 @@ func (ctrl *Controller) GetProductByID(c *gin.Context) {
 	}
 
 	uc := product.NewProductUseCase(ctrl.repos.Products)
-	p, err := uc.GetByID(id)
+	p, err := uc.GetByID(ctrl.ctx, id)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -86,7 +86,7 @@ func (ctrl *Controller) GetProductByID(c *gin.Context) {
 // @Router /products [get]
 func (ctrl *Controller) getAllProducts(c *gin.Context) {
 	uc := product.NewProductUseCase(ctrl.repos.Products)
-	products, err := uc.GetAll()
+	products, err := uc.GetAll(ctrl.ctx)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -124,7 +124,7 @@ func (ctrl *Controller) updateProductByID(c *gin.Context) {
 	}
 
 	uc := product.NewProductUseCase(ctrl.repos.Products)
-	if err := uc.Update(id, input); err != nil {
+	if err := uc.Update(ctrl.ctx, id, input); err != nil {
 		newErrorResponse(c, err)
 		return
 	}
@@ -153,7 +153,7 @@ func (ctrl *Controller) deleteProductByID(c *gin.Context) {
 	}
 
 	uc := product.NewProductUseCase(ctrl.repos.Products)
-	if err := uc.Remove(id); err != nil {
+	if err := uc.Remove(ctrl.ctx, id); err != nil {
 		newErrorResponse(c, err)
 		return
 	}

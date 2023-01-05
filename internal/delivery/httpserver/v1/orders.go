@@ -40,7 +40,7 @@ func (ctrl *Controller) createOrder(c *gin.Context) {
 	}
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
-	id, err := uc.Create(input)
+	id, err := uc.Create(ctrl.ctx, input)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -78,7 +78,7 @@ func (ctrl *Controller) getOrderByID(c *gin.Context) {
 	}
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
-	o, err := uc.GetByID(id)
+	o, err := uc.GetByID(ctrl.ctx, id)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -112,7 +112,7 @@ func (ctrl *Controller) getAllOrders(c *gin.Context) {
 	}
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
-	orders, err := uc.GetAllByUserID(userId)
+	orders, err := uc.GetAllByUserID(ctrl.ctx, userId)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -158,7 +158,7 @@ func (ctrl *Controller) updateOrderByID(c *gin.Context) {
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
 
-	o, err := uc.GetByID(id)
+	o, err := uc.GetByID(ctrl.ctx, id)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -169,7 +169,7 @@ func (ctrl *Controller) updateOrderByID(c *gin.Context) {
 		return
 	}
 
-	if err = uc.Update(input); err != nil {
+	if err = uc.Update(ctrl.ctx, input); err != nil {
 		newErrorResponse(c, err)
 		return
 	}
@@ -205,7 +205,7 @@ func (ctrl *Controller) deleteOrderByID(c *gin.Context) {
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
 
-	o, err := uc.GetByID(id)
+	o, err := uc.GetByID(ctrl.ctx, id)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -216,7 +216,7 @@ func (ctrl *Controller) deleteOrderByID(c *gin.Context) {
 		return
 	}
 
-	if err = uc.Remove(id); err != nil {
+	if err = uc.Remove(ctrl.ctx, id); err != nil {
 		newErrorResponse(c, err)
 		return
 	}

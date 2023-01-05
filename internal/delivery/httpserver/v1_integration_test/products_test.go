@@ -2,6 +2,7 @@ package v1_integration_test
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
@@ -35,14 +36,16 @@ func TestGetProductByID(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
+
 	// Create dummy repos, for don't use other
 	repos := repository.Repository{}
 
 	repoProducts := mockProducts.NewMockRepository(ctrl)
-	repoProducts.EXPECT().Get(reqID).Return(exp, nil).Times(1)
+	repoProducts.EXPECT().Get(ctx, reqID).Return(exp, nil).Times(1)
 
 	repos.Products = repoProducts
-	handler := v1.NewController(repos)
+	handler := v1.NewController(ctx, repos)
 
 	// Init endpoint
 	r := gin.New()
@@ -74,14 +77,16 @@ func TestGetProductServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	ctx := context.Background()
+
 	// Create dummy repos, for don't use other
 	repos := repository.Repository{}
 
 	repoProducts := mockProducts.NewMockRepository(ctrl)
-	repoProducts.EXPECT().Get(reqID).Return(nil, errs.HandleErrorDB(sql.ErrConnDone)).Times(1)
+	repoProducts.EXPECT().Get(ctx, reqID).Return(nil, errs.HandleErrorDB(sql.ErrConnDone)).Times(1)
 
 	repos.Products = repoProducts
-	handler := v1.NewController(repos)
+	handler := v1.NewController(ctx, repos)
 
 	// Init endpoint
 	r := gin.New()
@@ -127,14 +132,16 @@ func TestCreateProduct(t *testing.T) {
 		t.Errorf("Can't encode json request: %s", err.Error())
 	}
 
+	ctx := context.Background()
+
 	// Create dummy repos, for don't use other
 	repos := repository.Repository{}
 
 	repoProducts := mockProducts.NewMockRepository(ctrl)
-	repoProducts.EXPECT().StoreWithPrices(product).Return(exp, nil).Times(1)
+	repoProducts.EXPECT().StoreWithPrices(ctx, product).Return(exp, nil).Times(1)
 
 	repos.Products = repoProducts
-	handler := v1.NewController(repos)
+	handler := v1.NewController(ctx, repos)
 
 	// Init endpoint
 	r := gin.New()
@@ -178,14 +185,16 @@ func TestCreateProductServiceError(t *testing.T) {
 		t.Errorf("Can't encode json request: %s", err.Error())
 	}
 
+	ctx := context.Background()
+
 	// Create dummy repos, for don't use other
 	repos := repository.Repository{}
 
 	repoProducts := mockProducts.NewMockRepository(ctrl)
-	repoProducts.EXPECT().StoreWithPrices(product).Return("", errs.HandleErrorDB(sql.ErrConnDone)).Times(1)
+	repoProducts.EXPECT().StoreWithPrices(ctx, product).Return("", errs.HandleErrorDB(sql.ErrConnDone)).Times(1)
 
 	repos.Products = repoProducts
-	handler := v1.NewController(repos)
+	handler := v1.NewController(ctx, repos)
 
 	// Init endpoint
 	r := gin.New()
@@ -219,7 +228,7 @@ func TestCreateProductBadRequest(t *testing.T) {
 
 	// Create dummy repos, for don't use other
 	repos := repository.Repository{}
-	handler := v1.NewController(repos)
+	handler := v1.NewController(context.Background(), repos)
 
 	// Init endpoint
 	r := gin.New()
@@ -253,7 +262,7 @@ func TestCreateProductValidationError(t *testing.T) {
 
 	// Create dummy repos, for don't use other
 	repos := repository.Repository{}
-	handler := v1.NewController(repos)
+	handler := v1.NewController(context.Background(), repos)
 
 	// Init endpoint
 	r := gin.New()
@@ -287,7 +296,7 @@ func TestCreateProductInnerValidationError(t *testing.T) {
 
 	// Create dummy repos, for don't use other
 	repos := repository.Repository{}
-	handler := v1.NewController(repos)
+	handler := v1.NewController(context.Background(), repos)
 
 	// Init endpoint
 	r := gin.New()

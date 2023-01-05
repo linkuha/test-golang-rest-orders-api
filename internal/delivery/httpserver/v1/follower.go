@@ -43,7 +43,7 @@ func (ctrl *Controller) addFollower(c *gin.Context) {
 	encryptor := service.NewPasswordEncryptor()
 	uc := user.NewUserUseCase(ctrl.repos.Users, encryptor)
 
-	err = uc.AddFollower(input)
+	err = uc.AddFollower(ctrl.ctx, input)
 	if err != nil {
 		newErrorResponse(c, err)
 		return

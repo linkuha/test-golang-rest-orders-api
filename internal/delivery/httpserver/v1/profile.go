@@ -36,7 +36,7 @@ func (ctrl *Controller) createProfile(c *gin.Context) {
 	input.UserID = userId
 
 	uc := profile.NewProfileUseCase(ctrl.repos.Profiles)
-	id, err := uc.Create(input)
+	id, err := uc.Create(ctrl.ctx, input)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -67,7 +67,7 @@ func (ctrl *Controller) getProfile(c *gin.Context) {
 		return
 	}
 
-	p, err := ctrl.repos.Profiles.GetByUserID(id)
+	p, err := ctrl.repos.Profiles.GetByUserID(ctrl.ctx, id)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -116,7 +116,7 @@ func (ctrl *Controller) updateProfile(c *gin.Context) {
 		return
 	}
 
-	err = ctrl.repos.Profiles.Update(&input)
+	err = ctrl.repos.Profiles.Update(ctrl.ctx, &input)
 	if err != nil {
 		newErrorResponse(c, err)
 		return

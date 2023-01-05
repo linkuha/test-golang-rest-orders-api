@@ -1,6 +1,7 @@
 package order
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
@@ -23,11 +24,11 @@ func newOrderPostgresRepository(d *sql.DB) Repository {
 	}
 }
 
-func (r *repo) Get(id string) (*entity.Order, error) {
+func (r *repo) Get(ctx context.Context, id string) (*entity.Order, error) {
 	query := fmt.Sprintf("SELECT id, user_id, number FROM %s WHERE id = $1", ordersTableName)
 	log.Debug().Msg("Query: " + query)
 
-	row := r.db.QueryRow(query, id)
+	row := r.db.QueryRowContext(ctx, query, id)
 	order := entity.Order{}
 
 	err := row.Scan(&order.ID, &order.UserID, &order.Number)
@@ -37,11 +38,11 @@ func (r *repo) Get(id string) (*entity.Order, error) {
 	return &order, nil
 }
 
-func (r *repo) GetAllByUserID(userID string) (*[]entity.Order, error) {
+func (r *repo) GetAllByUserID(ctx context.Context, userID string) (*[]entity.Order, error) {
 	query := fmt.Sprintf("SELECT id, user_id, number FROM %s WHERE user_id = $1", ordersTableName)
 	log.Debug().Msg("Query: " + query)
 
-	rows, err := r.db.Query(query, userID)
+	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, errs.HandleErrorDB(err)
 	}
@@ -65,11 +66,11 @@ func (r *repo) GetAllByUserID(userID string) (*[]entity.Order, error) {
 	return &orders, nil
 }
 
-func (r *repo) GetProducts(id string) (*[]entity.OrderProductView, error) {
+func (r *repo) GetProducts(ctx context.Context, id string) (*[]entity.OrderProductView, error) {
 	query := fmt.Sprintf("SELECT product_id, amount FROM %s WHERE order_id = $1", orderProductsTableName)
 	log.Debug().Msg("Query: " + query)
 
-	rows, err := r.db.Query(query, id)
+	rows, err := r.db.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, errs.HandleErrorDB(err)
 	}
@@ -93,12 +94,12 @@ func (r *repo) GetProducts(id string) (*[]entity.OrderProductView, error) {
 	return &products, nil
 }
 
-func (r *repo) Store(order *entity.Order) (string, error) {
+func (r *repo) Store(ctx context.Context, order *entity.Order) (string, error) {
 	var id string
 	query := fmt.Sprintf("INSERT INTO %s (number, user_id) VALUES ($1, $2) RETURNING id", ordersTableName)
 	log.Debug().Msg("Query: " + query)
 
-	row := r.db.QueryRow(query, order.Number, order.UserID)
+	row := r.db.QueryRowContext(ctx, query, order.Number, order.UserID)
 	if err := row.Scan(&id); err != nil {
 		return "", errs.HandleErrorDB(err)
 	}
@@ -106,11 +107,11 @@ func (r *repo) Store(order *entity.Order) (string, error) {
 	return id, nil
 }
 
-func (r *repo) Update(order *entity.Order) error {
+func (r *repo) Update(ctx context.Context, order *entity.Order) error {
 	query := fmt.Sprintf("UPDATE %s SET number = $1, user_id = $2 WHERE id = $3", ordersTableName)
 	log.Debug().Msg("Query: " + query)
 
-	_, err := r.db.Exec(query, order.Number, order.UserID, order.ID)
+	_, err := r.db.ExecContext(ctx, query, order.Number, order.UserID, order.ID)
 	if err != nil {
 		return errs.HandleErrorDB(err)
 	}
@@ -118,24 +119,24 @@ func (r *repo) Update(order *entity.Order) error {
 	return nil
 }
 
-func (r *repo) Remove(id string) error {
+func (r *repo) Remove(ctx context.Context, id string) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE id = $1", ordersTableName)
 	log.Debug().Msg("Query: " + query)
 
-	_, err := r.db.Exec(query, id)
+	_, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return errs.HandleErrorDB(err)
 	}
 	return nil
 }
 
-func (r *repo) AddProduct(p *entity.OrderProduct) error {
+func (r *repo) AddProduct(ctx context.Context, p *entity.OrderProduct) error {
 	// idempotent
 	query := fmt.Sprintf(`INSERT INTO %s (order_id, product_id, amount) VALUES ($1, $2, $3)
 		ON CONFLICT (order_id, product_id) DO UPDATE SET amount = %s.amount + EXCLUDED.amount`, orderProductsTableName, orderProductsTableName)
 	log.Debug().Msg("Query: " + query)
 
-	_, err := r.db.Exec(query, p.OrderID, p.ProductID, p.Amount)
+	_, err := r.db.ExecContext(ctx, query, p.OrderID, p.ProductID, p.Amount)
 	if err != nil {
 		return errs.HandleErrorDB(err)
 	}
@@ -143,11 +144,11 @@ func (r *repo) AddProduct(p *entity.OrderProduct) error {
 	return nil
 }
 
-func (r *repo) RemoveProduct(orderID, productID string) error {
+func (r *repo) RemoveProduct(ctx context.Context, orderID, productID string) error {
 	query := fmt.Sprintf(`DELETE FROM %s WHERE order_id = $1 AND product_id = $2`, orderProductsTableName)
 	log.Debug().Msg("Query: " + query)
 
-	_, err := r.db.Exec(query, orderID, productID)
+	_, err := r.db.ExecContext(ctx, query, orderID, productID)
 	if err != nil {
 		return errs.HandleErrorDB(err)
 	}

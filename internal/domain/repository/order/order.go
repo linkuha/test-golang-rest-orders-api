@@ -1,20 +1,21 @@
 package order
 
 import (
+	"context"
 	"database/sql"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
 )
 
 type Repository interface {
-	Get(id string) (*entity.Order, error)
-	GetAllByUserID(userId string) (*[]entity.Order, error)
-	GetProducts(id string) (*[]entity.OrderProductView, error)
+	Get(ctx context.Context, id string) (*entity.Order, error)
+	GetAllByUserID(ctx context.Context, userId string) (*[]entity.Order, error)
+	GetProducts(ctx context.Context, id string) (*[]entity.OrderProductView, error)
 
-	Store(order *entity.Order) (string, error)
-	Update(order *entity.Order) error
-	Remove(id string) error
-	AddProduct(p *entity.OrderProduct) error
-	RemoveProduct(orderID, productID string) error
+	Store(ctx context.Context, order *entity.Order) (string, error)
+	Update(ctx context.Context, order *entity.Order) error
+	Remove(ctx context.Context, id string) error
+	AddProduct(ctx context.Context, p *entity.OrderProduct) error
+	RemoveProduct(ctx context.Context, orderID, productID string) error
 }
 
 func NewRepository(db *sql.DB) Repository {

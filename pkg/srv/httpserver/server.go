@@ -7,10 +7,9 @@ import (
 )
 
 const (
-	defaultReadTimeout     = 10 * time.Second
-	defaultWriteTimeout    = 10 * time.Second
-	defaultShutdownTimeout = 5 * time.Second
-	defaultAddr            = ":80"
+	defaultReadTimeout  = 10 * time.Second
+	defaultWriteTimeout = 10 * time.Second
+	defaultAddr         = ":80"
 )
 
 type Server struct {
@@ -28,9 +27,8 @@ func New(handler http.Handler, opts ...Option) *Server {
 		WriteTimeout:   defaultWriteTimeout,
 	}
 	s := &Server{
-		httpServer:      httpServer,
-		notify:          make(chan error, 1),
-		shutdownTimeout: defaultShutdownTimeout,
+		httpServer: httpServer,
+		notify:     make(chan error, 1),
 	}
 
 	// Custom options
@@ -54,9 +52,6 @@ func (s *Server) Notify() <-chan error {
 	return s.notify
 }
 
-func (s *Server) Shutdown() error {
-	ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
-	defer cancel()
-
+func (s *Server) Shutdown(ctx context.Context) error {
 	return s.httpServer.Shutdown(ctx)
 }
