@@ -6,26 +6,33 @@ import (
 )
 
 type Product struct {
-	ID          string
-	Name        string
-	Description string
-	LeftInStock int `json:"left_in_stock"`
-	Prices      []Price
+	ID          string  `json:"id"`
+	Name        string  `json:"name" binding:"required"`
+	Description string  `json:"description"`
+	LeftInStock int     `json:"left_in_stock" binding:"required"`
+	Prices      []Price `json:"prices"`
 }
 
 type Price struct {
-	Currency string
-	Price    float64
+	Currency string `json:"currency" binding:"required"`
+	Price    string `json:"price" binding:"required"` // TODO float64?
 	//Status   string
 }
 
 // Validate ...
 func (m *Product) Validate() error {
+	if len(m.Prices) > 0 {
+		for _, price := range m.Prices {
+			if err := price.Validate(); err != nil {
+				return err
+			}
+		}
+	}
 	return validation.ValidateStruct(
 		m,
 		validation.Field(&m.ID, is.UUIDv4),
 		validation.Field(&m.Name, validation.Required),
-		validation.Field(&m.Prices),
+		validation.Field(&m.LeftInStock, validation.Min(0)),
 	)
 }
 
@@ -33,7 +40,7 @@ func (m *Price) Validate() error {
 	return validation.ValidateStruct(
 		m,
 		validation.Field(&m.Currency, validation.Required, validation.Length(3, 3)),
-		validation.Field(&m.Price, validation.Required, validation.Min(0)),
+		validation.Field(&m.Price, validation.Required),
 	)
 }
 

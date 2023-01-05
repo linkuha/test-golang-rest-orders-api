@@ -6,7 +6,6 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "localhost:3000",
     "basePath": "/v1",
     "paths": {
         "/auth/sign-in": {
@@ -312,7 +311,7 @@
                 }
             }
         },
-        "/orders/:id": {
+        "/orders/{id}": {
             "get": {
                 "security": [
                     {
@@ -331,6 +330,15 @@
                 ],
                 "summary": "Get order",
                 "operationId": "order-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -389,6 +397,13 @@
                 "summary": "Update order",
                 "operationId": "order-update",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "order updating data",
                         "name": "input",
@@ -450,6 +465,15 @@
                 ],
                 "summary": "Delete order",
                 "operationId": "order-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -484,7 +508,7 @@
                 }
             }
         },
-        "/orders/:id/products": {
+        "/orders/{id}/products": {
             "get": {
                 "security": [
                     {
@@ -503,6 +527,15 @@
                 ],
                 "summary": "Get all order products",
                 "operationId": "order-products-get-all",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -563,6 +596,13 @@
                         "schema": {
                             "$ref": "#/definitions/entity.Order"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -605,7 +645,7 @@
                 }
             }
         },
-        "/orders/:id/products/:productID": {
+        "/orders/{id}/products/{productID}": {
             "delete": {
                 "security": [
                     {
@@ -624,6 +664,22 @@
                 ],
                 "summary": "Delete product from order",
                 "operationId": "order-product-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "productID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -773,7 +829,7 @@
                 }
             }
         },
-        "/products/:id": {
+        "/products/{id}": {
             "get": {
                 "security": [
                     {
@@ -792,6 +848,15 @@
                 ],
                 "summary": "Get product",
                 "operationId": "product-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -844,6 +909,13 @@
                 "summary": "Update product",
                 "operationId": "product-update",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "product updating data",
                         "name": "input",
@@ -905,6 +977,15 @@
                 ],
                 "summary": "Delete product",
                 "operationId": "product-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1003,7 +1084,7 @@
                 }
             }
         },
-        "/profiles/:id": {
+        "/profiles/{id}": {
             "get": {
                 "security": [
                     {
@@ -1022,6 +1103,15 @@
                 ],
                 "summary": "Get profile",
                 "operationId": "profile-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1075,6 +1165,13 @@
                 "operationId": "profile-update",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "profile data",
                         "name": "input",
                         "in": "body",
@@ -1122,6 +1219,10 @@
     "definitions": {
         "entity.Follower": {
             "type": "object",
+            "required": [
+                "follower_id",
+                "user_id"
+            ],
             "properties": {
                 "follower_id": {
                     "type": "string"
@@ -1133,6 +1234,10 @@
         },
         "entity.Order": {
             "type": "object",
+            "required": [
+                "number",
+                "user_id"
+            ],
             "properties": {
                 "id": {
                     "type": "string"
@@ -1147,17 +1252,25 @@
         },
         "entity.Price": {
             "type": "object",
+            "required": [
+                "currency",
+                "price"
+            ],
             "properties": {
                 "currency": {
                     "type": "string"
                 },
                 "price": {
-                    "type": "string"
+                    "type": "number"
                 }
             }
         },
         "entity.Product": {
             "type": "object",
+            "required": [
+                "left_in_stock",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string"
@@ -1195,6 +1308,12 @@
         },
         "entity.Profile": {
             "type": "object",
+            "required": [
+                "age",
+                "first_name",
+                "last_name",
+                "sex"
+            ],
             "properties": {
                 "age": {
                     "type": "integer"

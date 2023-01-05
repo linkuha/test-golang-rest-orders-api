@@ -24,13 +24,13 @@ func (ctrl *Controller) createProfile(c *gin.Context) {
 	var input entity.Profile
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, newJSONBindingErrorWrapper(err))
 		return
 	}
 
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 	input.UserID = userId
@@ -38,7 +38,7 @@ func (ctrl *Controller) createProfile(c *gin.Context) {
 	uc := profile.NewProfileUseCase(ctrl.repos.Profiles)
 	id, err := uc.Create(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
@@ -54,17 +54,22 @@ func (ctrl *Controller) createProfile(c *gin.Context) {
 // @ID profile-get
 // @Accept  json
 // @Produce  json
+// @Param id path string true "Profile ID"
 // @Success 200 {object} entity.Profile
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /profiles/:id [get]
+// @Router /profiles/{id} [get]
 func (ctrl *Controller) getProfile(c *gin.Context) {
 	id := c.Param("id")
+	if id == "" {
+		newErrorResponse(c, emptyParameterID)
+		return
+	}
 
 	p, err := ctrl.repos.Profiles.GetByUserID(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
@@ -78,36 +83,42 @@ func (ctrl *Controller) getProfile(c *gin.Context) {
 // @ID profile-update
 // @Accept  json
 // @Produce  json
+// @Param id path string true "Profile ID"
 // @Param input body entity.Profile true "profile data"
 // @Success 200 {object} statusResponse
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /profiles/:id [put]
+// @Router /profiles/{id} [put]
 func (ctrl *Controller) updateProfile(c *gin.Context) {
 	var input entity.Profile
 
+	id := c.Param("id")
+	if id == "" {
+		newErrorResponse(c, emptyParameterID)
+		return
+	}
+
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, newJSONBindingErrorWrapper(err))
 		return
 	}
 
 	userID, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 	input.UserID = userID
 
-	id := c.Param("id")
 	if userID != id {
-		newErrorResponse(c, http.StatusForbidden, err.Error())
+		newErrorResponse(c, forbiddenError)
 		return
 	}
 
 	err = ctrl.repos.Profiles.Update(&input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 

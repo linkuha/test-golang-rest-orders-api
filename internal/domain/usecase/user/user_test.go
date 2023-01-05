@@ -1,9 +1,9 @@
 package user_test
 
 import (
-	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
+	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/errs"
 	mockUser "github.com/linkuha/test-golang-rest-orders-api/internal/domain/repository/user/mocks"
 	mockService "github.com/linkuha/test-golang-rest-orders-api/internal/domain/service/mocks"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/usecase/user"
@@ -54,8 +54,8 @@ func TestGetError(t *testing.T) {
 	u, err := useCase.GetUserIfCredentialsValid(userName, "wrong")
 	require.Error(t, err)
 	require.EqualError(t,
-		expectedErr,
-		err.Error(),
+		err,
+		expectedErr.Error(),
 	)
 	require.Nil(t, u)
 }
@@ -69,15 +69,15 @@ func TestGetDbError(t *testing.T) {
 
 	userName := "qwerty"
 	repo.EXPECT().GetByUsername(userName).Return(nil, repoErr).Times(1)
-	expectedErr := fmt.Errorf("err from user repository: %w", repoErr)
 
 	encryptor := mockService.NewPasswordEncryptor()
 	useCase := user.NewUserUseCase(repo, encryptor)
 	u, err := useCase.GetUserIfCredentialsValid(userName, "password")
 	require.Error(t, err)
+	require.IsType(t, errs.CustomErrorWrapper{}, err)
 	require.EqualError(t,
-		expectedErr,
-		err.Error(),
+		err,
+		repoErr.Error(),
 	)
 	require.Nil(t, u)
 }
@@ -116,7 +116,10 @@ func TestCreateValidateError(t *testing.T) {
 	useCase := user.NewUserUseCase(repo, encryptor)
 	id, err := useCase.Create(u)
 	require.Error(t, err)
-	require.ErrorContains(t, err, "validate error")
+	require.IsType(t, errs.CustomErrorWrapper{}, err)
+	var tmp errs.CustomErrorWrapper
+	errors.As(err, &tmp)
+	require.Equal(t, tmp.Code, errs.Validation)
 	require.Empty(t, id)
 }
 
@@ -134,13 +137,13 @@ func TestCreateDbError(t *testing.T) {
 	u2 := u
 	u2.PasswordHash = "testpassword"
 	repo.EXPECT().Store(&u2).Return("", dbErr).Times(1)
-	expectedErr := fmt.Errorf("err from user repository: %w", dbErr)
 
 	encryptor := mockService.NewPasswordEncryptor()
 	useCase := user.NewUserUseCase(repo, encryptor)
 	id, err := useCase.Create(u)
 	require.Error(t, err)
-	require.EqualError(t, err, expectedErr.Error())
+	require.IsType(t, errs.CustomErrorWrapper{}, err)
+	require.EqualError(t, err, dbErr.Error())
 	require.Empty(t, id)
 }
 
@@ -170,13 +173,13 @@ func TestRemoveDbError(t *testing.T) {
 	u := entity.TestUser(t)
 	u.ID = "c401f9dc-1e68-4b44-82d9-3a93b09e3fe7"
 	repo.EXPECT().Remove(u.ID).Return(dbErr).Times(1)
-	expectedErr := fmt.Errorf("err from user repository: %w", dbErr)
 
 	encryptor := mockService.NewPasswordEncryptor()
 	useCase := user.NewUserUseCase(repo, encryptor)
 	err := useCase.Remove(*u)
 	require.Error(t, err)
-	require.EqualError(t, err, expectedErr.Error())
+	require.IsType(t, errs.CustomErrorWrapper{}, err)
+	require.EqualError(t, err, dbErr.Error())
 }
 
 func TestUpdate(t *testing.T) {
@@ -209,8 +212,10 @@ func TestUpdateValidateError(t *testing.T) {
 	useCase := user.NewUserUseCase(repo, encryptor)
 	err := useCase.Update(*u)
 	require.Error(t, err)
-	require.ErrorContains(t, err, "validate error")
-
+	require.IsType(t, errs.CustomErrorWrapper{}, err)
+	var tmp errs.CustomErrorWrapper
+	errors.As(err, &tmp)
+	require.Equal(t, tmp.Code, errs.Validation)
 }
 
 func TestUpdateDbError(t *testing.T) {
@@ -225,13 +230,13 @@ func TestUpdateDbError(t *testing.T) {
 	u.PasswordHash = "testpassword"
 
 	repo.EXPECT().Update(u).Return(dbErr).Times(1)
-	expectedErr := fmt.Errorf("err from user repository: %w", dbErr)
 
 	encryptor := mockService.NewPasswordEncryptor()
 	useCase := user.NewUserUseCase(repo, encryptor)
 	err := useCase.Update(*u)
 	require.Error(t, err)
-	require.EqualError(t, err, expectedErr.Error())
+	require.IsType(t, errs.CustomErrorWrapper{}, err)
+	require.EqualError(t, err, dbErr.Error())
 }
 
 func TestAddFollower(t *testing.T) {
@@ -265,7 +270,10 @@ func TestAddFollowerValidateError(t *testing.T) {
 	useCase := user.NewUserUseCase(repo, encryptor)
 	err := useCase.AddFollower(follower)
 	require.Error(t, err)
-	require.ErrorContains(t, err, "validate error")
+	require.IsType(t, errs.CustomErrorWrapper{}, err)
+	var tmp errs.CustomErrorWrapper
+	errors.As(err, &tmp)
+	require.Equal(t, tmp.Code, errs.Validation)
 }
 
 func TestAddFollowerSameIDError(t *testing.T) {
@@ -283,7 +291,10 @@ func TestAddFollowerSameIDError(t *testing.T) {
 	useCase := user.NewUserUseCase(repo, encryptor)
 	err := useCase.AddFollower(follower)
 	require.Error(t, err)
-	require.ErrorContains(t, err, "validate error")
+	require.IsType(t, errs.CustomErrorWrapper{}, err)
+	var tmp errs.CustomErrorWrapper
+	errors.As(err, &tmp)
+	require.Equal(t, tmp.Code, errs.Validation)
 }
 
 func TestAddFollowerDbError(t *testing.T) {
@@ -296,11 +307,11 @@ func TestAddFollowerDbError(t *testing.T) {
 	follower := entity.TestFollower(t)
 
 	repo.EXPECT().AddFollower(follower.UserID, follower.FollowerID).Return(dbErr).Times(1)
-	expectedErr := fmt.Errorf("err from user repository: %w", dbErr)
 
 	encryptor := mockService.NewPasswordEncryptor()
 	useCase := user.NewUserUseCase(repo, encryptor)
 	err := useCase.AddFollower(*follower)
 	require.Error(t, err)
-	require.EqualError(t, err, expectedErr.Error())
+	require.IsType(t, errs.CustomErrorWrapper{}, err)
+	require.EqualError(t, err, dbErr.Error())
 }

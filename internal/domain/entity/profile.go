@@ -7,12 +7,12 @@ import (
 
 type Profile struct {
 	UserID     string `json:"user_id"`
-	FirstName  string `json:"first_name"`
-	LastName   string `json:"last_name"`
+	FirstName  string `json:"first_name" binding:"required"`
+	LastName   string `json:"last_name" binding:"required"`
 	MiddleName string `json:"middle_name"`
 	FullName   string `json:"full_name"`
-	Sex        string
-	Age        int
+	Sex        string `json:"sex" binding:"required"`
+	Age        int    `json:"age" binding:"required"`
 }
 
 // Validate ...

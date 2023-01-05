@@ -14,20 +14,19 @@ import (
 // @title       Go Orders API Test Issue
 // @description REST API example
 // @version     1.0
-// @host        localhost:3000
 // @BasePath    /v1
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
 func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
+	// Swagger
+	docs.SwaggerInfo.Host = "localhost:" + cfg.EnvParams.Port
+
 	router := gin.New()
 
 	if cfg.EnvParams.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
-
-	// Swagger
-	docs.SwaggerInfo.Host = "localhost:" + cfg.EnvParams.Port
 	swaggerHandler := ginSwagger.DisablingWrapHandler(swaggerFiles.Handler, "DISABLE_SWAGGER_HTTP_HANDLER")
 	router.GET("/swagger/*any", swaggerHandler)
 

@@ -20,9 +20,13 @@ type dataResponse struct {
 	Data    interface{} `json:"data"`
 }
 
-func newErrorResponse(c *gin.Context, statusCode int, message string) {
-	log.Error().Msg(message)
-	c.AbortWithStatusJSON(statusCode, errorResponse{Success: false, Message: message})
+func newErrorResponse(c *gin.Context, err error) {
+	errDetails := handleDomainError(err)
+
+	log.Error().Msgf("client error: %s", errDetails.ClientError)
+	log.Debug().Msgf("internal error: %s", errDetails.DebugError)
+
+	c.AbortWithStatusJSON(errDetails.Code, errorResponse{Success: false, Message: errDetails.ClientError})
 }
 
 func newDataResponse(c *gin.Context, data interface{}) {

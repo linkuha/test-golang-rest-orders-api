@@ -319,7 +319,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/orders/:id": {
+        "/orders/{id}": {
             "get": {
                 "security": [
                     {
@@ -338,6 +338,15 @@ const docTemplate = `{
                 ],
                 "summary": "Get order",
                 "operationId": "order-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -396,6 +405,13 @@ const docTemplate = `{
                 "summary": "Update order",
                 "operationId": "order-update",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "order updating data",
                         "name": "input",
@@ -457,6 +473,15 @@ const docTemplate = `{
                 ],
                 "summary": "Delete order",
                 "operationId": "order-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -491,7 +516,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/orders/:id/products": {
+        "/orders/{id}/products": {
             "get": {
                 "security": [
                     {
@@ -510,6 +535,15 @@ const docTemplate = `{
                 ],
                 "summary": "Get all order products",
                 "operationId": "order-products-get-all",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -570,6 +604,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/entity.Order"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -612,7 +653,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/orders/:id/products/:productID": {
+        "/orders/{id}/products/{productID}": {
             "delete": {
                 "security": [
                     {
@@ -631,6 +672,22 @@ const docTemplate = `{
                 ],
                 "summary": "Delete product from order",
                 "operationId": "order-product-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "productID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -780,7 +837,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/products/:id": {
+        "/products/{id}": {
             "get": {
                 "security": [
                     {
@@ -799,6 +856,15 @@ const docTemplate = `{
                 ],
                 "summary": "Get product",
                 "operationId": "product-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -851,6 +917,13 @@ const docTemplate = `{
                 "summary": "Update product",
                 "operationId": "product-update",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "product updating data",
                         "name": "input",
@@ -912,6 +985,15 @@ const docTemplate = `{
                 ],
                 "summary": "Delete product",
                 "operationId": "product-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1010,7 +1092,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/profiles/:id": {
+        "/profiles/{id}": {
             "get": {
                 "security": [
                     {
@@ -1029,6 +1111,15 @@ const docTemplate = `{
                 ],
                 "summary": "Get profile",
                 "operationId": "profile-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1082,6 +1173,13 @@ const docTemplate = `{
                 "operationId": "profile-update",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "profile data",
                         "name": "input",
                         "in": "body",
@@ -1129,6 +1227,10 @@ const docTemplate = `{
     "definitions": {
         "entity.Follower": {
             "type": "object",
+            "required": [
+                "follower_id",
+                "user_id"
+            ],
             "properties": {
                 "follower_id": {
                     "type": "string"
@@ -1140,6 +1242,10 @@ const docTemplate = `{
         },
         "entity.Order": {
             "type": "object",
+            "required": [
+                "number",
+                "user_id"
+            ],
             "properties": {
                 "id": {
                     "type": "string"
@@ -1154,17 +1260,25 @@ const docTemplate = `{
         },
         "entity.Price": {
             "type": "object",
+            "required": [
+                "currency",
+                "price"
+            ],
             "properties": {
                 "currency": {
                     "type": "string"
                 },
                 "price": {
-                    "type": "string"
+                    "type": "number"
                 }
             }
         },
         "entity.Product": {
             "type": "object",
+            "required": [
+                "left_in_stock",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string"
@@ -1202,6 +1316,12 @@ const docTemplate = `{
         },
         "entity.Profile": {
             "type": "object",
+            "required": [
+                "age",
+                "first_name",
+                "last_name",
+                "sex"
+            ],
             "properties": {
                 "age": {
                     "type": "integer"
@@ -1282,7 +1402,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:3000",
+	Host:             "",
 	BasePath:         "/v1",
 	Schemes:          []string{},
 	Title:            "Go Orders API Test Issue",

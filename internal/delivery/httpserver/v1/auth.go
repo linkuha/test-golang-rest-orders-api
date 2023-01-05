@@ -29,7 +29,7 @@ func (ctrl *Controller) signUp(ctx *gin.Context) {
 	var input signInInput
 
 	if err := ctx.BindJSON(&input); err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, "invalid input body")
+		newErrorResponse(ctx, newJSONBindingErrorWrapper(err))
 		return
 	}
 
@@ -38,7 +38,7 @@ func (ctrl *Controller) signUp(ctx *gin.Context) {
 	u := entity.User{Username: input.Username, Password: input.Password}
 	id, err := uc.Create(u)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		newErrorResponse(ctx, err)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (ctrl *Controller) signIn(ctx *gin.Context) {
 	var input signInInput
 
 	if err := ctx.BindJSON(&input); err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		newErrorResponse(ctx, newJSONBindingErrorWrapper(err))
 		return
 	}
 
@@ -71,14 +71,14 @@ func (ctrl *Controller) signIn(ctx *gin.Context) {
 	uc := user.NewUserUseCase(ctrl.repos.Users, encryptor)
 	u, err := uc.GetUserIfCredentialsValid(input.Username, input.Password)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusUnauthorized, "Invalid username or password")
+		newErrorResponse(ctx, err)
 		return
 	}
 
 	authTokenGenerator := service.AuthTokenGenerator{}
 	token, err := authTokenGenerator.GenerateToken(u.ID)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		newErrorResponse(ctx, err)
 		return
 	}
 

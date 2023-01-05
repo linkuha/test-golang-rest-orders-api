@@ -6,21 +6,21 @@ import (
 )
 
 type Order struct {
-	ID     string
-	UserID string `json:"user_id"`
-	Number int
+	ID     string `json:"id"`
+	UserID string `json:"user_id" binding:"required"`
+	Number int    `binding:"required"`
 }
 
 type OrderProduct struct {
-	ID        int
+	ID        int    `json:"id"`
 	OrderID   string `json:"order_id"`
 	ProductID string `json:"product_id"`
-	Amount    int
+	Amount    int    `json:"amount"`
 }
 
 type OrderProductView struct {
-	ID     string
-	Amount int
+	ID     string `json:"id"`
+	Amount int    `json:"amount"`
 }
 
 // Validate ...

@@ -6,6 +6,9 @@ definitions:
         type: string
       user_id:
         type: string
+    required:
+    - follower_id
+    - user_id
     type: object
   entity.Order:
     properties:
@@ -15,13 +18,19 @@ definitions:
         type: integer
       user_id:
         type: string
+    required:
+    - number
+    - user_id
     type: object
   entity.Price:
     properties:
       currency:
         type: string
       price:
-        type: string
+        type: number
+    required:
+    - currency
+    - price
     type: object
   entity.Product:
     properties:
@@ -37,6 +46,9 @@ definitions:
         items:
           $ref: '#/definitions/entity.Price'
         type: array
+    required:
+    - left_in_stock
+    - name
     type: object
   entity.ProductUpdateInput:
     properties:
@@ -63,6 +75,11 @@ definitions:
         type: string
       user_id:
         type: string
+    required:
+    - age
+    - first_name
+    - last_name
+    - sex
     type: object
   v1.dataResponse:
     properties:
@@ -92,7 +109,6 @@ definitions:
       ok:
         type: boolean
     type: object
-host: localhost:3000
 info:
   contact: {}
   description: REST API example
@@ -296,12 +312,18 @@ paths:
       summary: Create order
       tags:
       - order
-  /orders/:id:
+  /orders/{id}:
     delete:
       consumes:
       - application/json
       description: delete product
       operationId: order-delete
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -335,6 +357,12 @@ paths:
       - application/json
       description: get order
       operationId: order-get
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -373,6 +401,11 @@ paths:
       description: update order
       operationId: order-update
       parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
       - description: order updating data
         in: body
         name: input
@@ -407,12 +440,18 @@ paths:
       summary: Update order
       tags:
       - order
-  /orders/:id/products:
+  /orders/{id}/products:
     get:
       consumes:
       - application/json
       description: get all order products
       operationId: order-products-get-all
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -453,6 +492,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/entity.Order'
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -485,12 +529,23 @@ paths:
       summary: Add product to order
       tags:
       - order
-  /orders/:id/products/:productID:
+  /orders/{id}/products/{productID}:
     delete:
       consumes:
       - application/json
       description: Delete product from order
       operationId: order-product-delete
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -593,12 +648,18 @@ paths:
       summary: Create product
       tags:
       - product
-  /products/:id:
+  /products/{id}:
     delete:
       consumes:
       - application/json
       description: delete product
       operationId: product-delete
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -632,6 +693,12 @@ paths:
       - application/json
       description: get product
       operationId: product-get
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -666,6 +733,11 @@ paths:
       description: update product
       operationId: product-update
       parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
       - description: product updating data
         in: body
         name: input
@@ -741,12 +813,18 @@ paths:
       summary: Create profile
       tags:
       - profile
-  /profiles/:id:
+  /profiles/{id}:
     get:
       consumes:
       - application/json
       description: get profile
       operationId: profile-get
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -781,6 +859,11 @@ paths:
       description: update profile
       operationId: profile-update
       parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: string
       - description: profile data
         in: body
         name: input

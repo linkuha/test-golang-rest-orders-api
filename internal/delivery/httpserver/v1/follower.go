@@ -25,18 +25,18 @@ func (ctrl *Controller) addFollower(c *gin.Context) {
 	var input entity.Follower
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, newJSONBindingErrorWrapper(err))
 		return
 	}
 
 	userID, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
 	if userID != input.UserID {
-		newErrorResponse(c, http.StatusForbidden, err.Error())
+		newErrorResponse(c, forbiddenError)
 		return
 	}
 
@@ -45,7 +45,7 @@ func (ctrl *Controller) addFollower(c *gin.Context) {
 
 	err = uc.AddFollower(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 

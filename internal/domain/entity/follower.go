@@ -6,8 +6,8 @@ import (
 )
 
 type Follower struct {
-	UserID     string `json:"user_id"`
-	FollowerID string `json:"follower_id"`
+	UserID     string `json:"user_id" binding:"required"`
+	FollowerID string `json:"follower_id" binding:"required"`
 	//Status     int
 }
 

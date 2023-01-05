@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
+	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/errs"
 	"github.com/rs/zerolog/log"
 	"strings"
 )
@@ -26,12 +27,13 @@ func newProductPostgresRepository(d *sql.DB) Repository {
 func (r *repo) Get(id string) (*entity.Product, error) {
 	query := fmt.Sprintf("SELECT id, `name`, description, left_in_stock FROM %s WHERE id = $1", productTableName)
 	log.Debug().Msg("Query: " + query)
+
 	row := r.db.QueryRow(query, id)
 	product := entity.Product{}
 
 	err := row.Scan(&product.ID, &product.Name, &product.Description, &product.LeftInStock)
 	if err != nil {
-		return nil, err
+		return nil, errs.HandleErrorDB(err)
 	}
 	return &product, nil
 }
@@ -39,9 +41,10 @@ func (r *repo) Get(id string) (*entity.Product, error) {
 func (r *repo) GetAll() (*[]entity.Product, error) {
 	query := fmt.Sprintf("SELECT id, `name`, description, left_in_stock FROM %s", productTableName)
 	log.Debug().Msg("Query: " + query)
+
 	rows, err := r.db.Query(query)
 	if err != nil {
-		panic(err)
+		return nil, errs.HandleErrorDB(err)
 	}
 	defer func(rows *sql.Rows) {
 		err := rows.Close()
@@ -55,7 +58,7 @@ func (r *repo) GetAll() (*[]entity.Product, error) {
 		p := entity.Product{}
 		err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.LeftInStock)
 		if err != nil {
-			fmt.Println(err)
+			//fmt.Println(err)
 			continue
 		}
 		products = append(products, p)
@@ -67,9 +70,10 @@ func (r *repo) GetAll() (*[]entity.Product, error) {
 func (r *repo) GetPrices(id string) (*[]entity.Price, error) {
 	query := fmt.Sprintf("SELECT price, currency FROM %s WHERE product_id = $1", pricesTableName)
 	log.Debug().Msg("Query: " + query)
+
 	rows, err := r.db.Query(query, id)
 	if err != nil {
-		return nil, err
+		return nil, errs.HandleErrorDB(err)
 	}
 	defer func(rows *sql.Rows) {
 		err := rows.Close()
@@ -95,9 +99,10 @@ func (r *repo) Store(product *entity.Product) (string, error) {
 	var id string
 	query := fmt.Sprintf("INSERT INTO %s (`name`, description, left_in_stock) VALUES ($1, $2, $3) RETURNING id", productTableName)
 	log.Debug().Msg("Query: " + query)
+
 	row := r.db.QueryRow(query, product.Name, product.Description, product.LeftInStock)
 	if err := row.Scan(&id); err != nil {
-		return "", err
+		return "", errs.HandleErrorDB(err)
 	}
 
 	return id, nil
@@ -107,16 +112,16 @@ func (r *repo) StoreWithPrices(product *entity.Product) (string, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		log.Debug().Msg("Start transaction err: " + err.Error())
-		return "", err
+		return "", errs.HandleErrorDB(err)
 	}
 
 	id, err := r.Store(product)
 	if err != nil {
 		if rollBackErr := tx.Rollback(); rollBackErr != nil {
 			log.Debug().Msg("Rollback err: " + rollBackErr.Error())
-			return "", err
+			return "", errs.HandleErrorDB(err)
 		}
-		return "", err
+		return "", errs.HandleErrorDB(err)
 	}
 
 	for _, price := range product.Prices {
@@ -124,16 +129,16 @@ func (r *repo) StoreWithPrices(product *entity.Product) (string, error) {
 		if err != nil {
 			if rollBackErr := tx.Rollback(); rollBackErr != nil {
 				log.Debug().Msg("Rollback transaction err: " + rollBackErr.Error())
-				return "", err
+				return "", errs.HandleErrorDB(err)
 			}
-			return "", err
+			return "", errs.HandleErrorDB(err)
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		log.Debug().Msg("Commit transaction err: " + err.Error())
-		return "", err
+		return "", errs.HandleErrorDB(err)
 	}
 
 	return id, nil
@@ -167,9 +172,10 @@ func (r *repo) Update(id string, input *entity.ProductUpdateInput) error {
 
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE id = $%d", productTableName, setQuery, argId)
 	log.Debug().Msg("Query: " + query)
+
 	_, err := r.db.Exec(query, args...)
 	if err != nil {
-		return err
+		return errs.HandleErrorDB(err)
 	}
 
 	return nil
@@ -178,9 +184,10 @@ func (r *repo) Update(id string, input *entity.ProductUpdateInput) error {
 func (r *repo) Remove(id string) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE id = $1", productTableName)
 	log.Debug().Msg("Query: " + query)
+
 	_, err := r.db.Exec(query, id)
 	if err != nil {
-		return err
+		return errs.HandleErrorDB(err)
 	}
 	return nil
 }
@@ -190,9 +197,10 @@ func (r *repo) AddPrice(productID string, price *entity.Price) error {
 	query := fmt.Sprintf(`INSERT INTO %s (product_id, currency, price) VALUES ($1, $2, $3)
 		ON CONFLICT (product_id, currency) DO UPDATE SET price = EXCLUDED.price`, pricesTableName)
 	log.Debug().Msg("Query: " + query)
+
 	row := r.db.QueryRow(query, productID, price.Currency, price.Price)
 	if err := row.Scan(&id); err != nil {
-		return err
+		return errs.HandleErrorDB(err)
 	}
 
 	return nil

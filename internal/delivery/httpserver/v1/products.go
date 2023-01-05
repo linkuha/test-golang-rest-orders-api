@@ -25,14 +25,14 @@ func (ctrl *Controller) CreateProduct(c *gin.Context) {
 	var input entity.Product
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, MalformedRequest.Error())
+		newErrorResponse(c, newJSONBindingErrorWrapper(err))
 		return
 	}
 
 	uc := product.NewProductUseCase(ctrl.repos.Products)
 	id, err := uc.CreateWithPrices(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, ServiceError.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
@@ -49,18 +49,23 @@ func (ctrl *Controller) CreateProduct(c *gin.Context) {
 // @ID product-get
 // @Accept  json
 // @Produce  json
+// @Param id path string true "Product ID"
 // @Success 200 {object} entity.Product
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /products/:id [get]
+// @Router /products/{id} [get]
 func (ctrl *Controller) GetProductByID(c *gin.Context) {
 	id := c.Param("id")
+	if id == "" {
+		newErrorResponse(c, emptyParameterID)
+		return
+	}
 
 	uc := product.NewProductUseCase(ctrl.repos.Products)
 	p, err := uc.GetByID(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, ServiceError.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
@@ -83,7 +88,7 @@ func (ctrl *Controller) getAllProducts(c *gin.Context) {
 	uc := product.NewProductUseCase(ctrl.repos.Products)
 	products, err := uc.GetAll()
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
@@ -97,25 +102,30 @@ func (ctrl *Controller) getAllProducts(c *gin.Context) {
 // @ID product-update
 // @Accept  json
 // @Produce  json
+// @Param id path string true "Product ID"
 // @Param input body entity.ProductUpdateInput true "product updating data"
 // @Success 200 {object} statusResponse
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /products/:id [put]
+// @Router /products/{id} [put]
 func (ctrl *Controller) updateProductByID(c *gin.Context) {
 	var input entity.ProductUpdateInput
 
-	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+	id := c.Param("id")
+	if id == "" {
+		newErrorResponse(c, emptyParameterID)
 		return
 	}
 
-	id := c.Param("id")
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, newJSONBindingErrorWrapper(err))
+		return
+	}
 
 	uc := product.NewProductUseCase(ctrl.repos.Products)
 	if err := uc.Update(id, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
@@ -129,17 +139,22 @@ func (ctrl *Controller) updateProductByID(c *gin.Context) {
 // @ID product-delete
 // @Accept  json
 // @Produce  json
+// @Param id path string true "Product ID"
 // @Success 200 {object} statusResponse
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /products/:id [delete]
+// @Router /products/{id} [delete]
 func (ctrl *Controller) deleteProductByID(c *gin.Context) {
 	id := c.Param("id")
+	if id == "" {
+		newErrorResponse(c, emptyParameterID)
+		return
+	}
 
 	uc := product.NewProductUseCase(ctrl.repos.Products)
 	if err := uc.Remove(id); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 

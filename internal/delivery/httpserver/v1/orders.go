@@ -24,25 +24,25 @@ func (ctrl *Controller) createOrder(c *gin.Context) {
 	var input entity.Order
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, newJSONBindingErrorWrapper(err))
 		return
 	}
 
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
 	if input.UserID != userId {
-		newErrorResponse(c, http.StatusForbidden, err.Error())
+		newErrorResponse(c, forbiddenError)
 		return
 	}
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
 	id, err := uc.Create(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
@@ -58,29 +58,34 @@ func (ctrl *Controller) createOrder(c *gin.Context) {
 // @ID order-get
 // @Accept  json
 // @Produce  json
+// @Param id path string true "Order ID"
 // @Success 200 {object} entity.Order
 // @Failure 400,403,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /orders/:id [get]
+// @Router /orders/{id} [get]
 func (ctrl *Controller) getOrderByID(c *gin.Context) {
 	id := c.Param("id")
+	if id == "" {
+		newErrorResponse(c, emptyParameterID)
+		return
+	}
 
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
 	o, err := uc.GetByID(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
 	if o.UserID != userId {
-		newErrorResponse(c, http.StatusForbidden, err.Error())
+		newErrorResponse(c, forbiddenError)
 		return
 	}
 
@@ -102,14 +107,14 @@ func (ctrl *Controller) getOrderByID(c *gin.Context) {
 func (ctrl *Controller) getAllOrders(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
 	orders, err := uc.GetAllByUserID(userId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
@@ -123,44 +128,49 @@ func (ctrl *Controller) getAllOrders(c *gin.Context) {
 // @ID order-update
 // @Accept  json
 // @Produce  json
+// @Param id path string true "Order ID"
 // @Param input body entity.Order true "order updating data"
 // @Success 200 {object} statusResponse
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /orders/:id [put]
+// @Router /orders/{id} [put]
 func (ctrl *Controller) updateOrderByID(c *gin.Context) {
 	var input entity.Order
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, newJSONBindingErrorWrapper(err))
 		return
 	}
 
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
 	id := c.Param("id")
+	if id == "" {
+		newErrorResponse(c, err)
+		return
+	}
 	input.ID = id
 
 	uc := order.NewOrderUseCase(ctrl.repos.Orders)
 
 	o, err := uc.GetByID(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
 	if o.UserID != userId {
-		newErrorResponse(c, http.StatusForbidden, err.Error())
+		newErrorResponse(c, forbiddenError)
 		return
 	}
 
-	if err := uc.Update(input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+	if err = uc.Update(input); err != nil {
+		newErrorResponse(c, err)
 		return
 	}
 
@@ -174,17 +184,22 @@ func (ctrl *Controller) updateOrderByID(c *gin.Context) {
 // @ID order-delete
 // @Accept  json
 // @Produce  json
+// @Param id path string true "Order ID"
 // @Success 200 {object} statusResponse
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /orders/:id [delete]
+// @Router /orders/{id} [delete]
 func (ctrl *Controller) deleteOrderByID(c *gin.Context) {
 	id := c.Param("id")
+	if id == "" {
+		newErrorResponse(c, emptyParameterID)
+		return
+	}
 
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
@@ -192,17 +207,17 @@ func (ctrl *Controller) deleteOrderByID(c *gin.Context) {
 
 	o, err := uc.GetByID(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, err)
 		return
 	}
 
 	if o.UserID != userId {
-		newErrorResponse(c, http.StatusForbidden, err.Error())
+		newErrorResponse(c, forbiddenError)
 		return
 	}
 
-	if err := uc.Remove(id); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+	if err = uc.Remove(id); err != nil {
+		newErrorResponse(c, err)
 		return
 	}
 

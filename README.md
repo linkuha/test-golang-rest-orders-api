@@ -1,6 +1,9 @@
-REST API of orders management ([testing task](./ISSUE.md))
+REST API of orders management ([pre-employment test](./ISSUE.md))
 
-Works with database: PostgreSQL
+[![License](https://badgen.net/badge/license/MIT/blue)](https://github.com/linkuha/test-golang-rest-orders-api/blob/main/LICENSE)
+[![Telegram](https://badgen.net/badge/icon/telegram?icon=telegram&label=@linkuha)](https://t.me/linkuha)
+
+DB: PostgreSQL
 
 This is first REST api service in Go implemented by me.
 Before that I was implemented from scratch in Go only backend daemon (concurrent parser, tuned by config and environment, 
@@ -25,7 +28,7 @@ You can use OpenAPI configuration for research from testing section below.
 Апи закрыто токеном JWT. Есть другой подход - хранение ID авторизационной сессии в куках, но мне он меньше нравится
 * Реализован middleware для авторизации запросов пользователя к API через JWT токен
 * Валидация в моделях, используется пакет go-ozzo/ozzo-validation/v4, чтобы не дублировать похожий код.
-* Для валидации на уровне биндинга структуры из запроса используется стандартные теги валидации - валидатора GIN - go-playground/validator
+* Для валидации на уровне биндинга структуры из запроса используется стандартные теги - валидатора GIN - go-playground/validator
 * В репозитории продукта входной аргумент - не модель, а DTO ProductUpdateInput, был сделан для возможности присылать только те поля,
 которые мы хотим изменить. Новый для меня подход, раньше просто перезаписывал все поля.
 * По-хорошему, в хэндлеры должны передаваться на вход - DTO, а затем их несомые данные мапиться в сущности. Но такой подход наплодит
@@ -36,6 +39,9 @@ You can use OpenAPI configuration for research from testing section below.
 * Написаны unit-тесты для слоя Repositories для работы с сущностью User.
 * Написаны integration-тесты для слоя Controllers для работы с сущностью Products. 
 Дальнейшее тестирование хендлеров - наплодит много кода, даже с учетом проработки табличных тестов.
+* Проработаны кастомные типа ошибок, для клиента - более общие ошибки, корректные статусы ответов. 
+Для дебага - внутренние, с возможностью получения стека. Полезно, если добавить middleware с логированием request-id.
+* Фиксацию зависимостей в ./vendor через `go mod vendor` в git не произвожу.
 
 ## Development environment
 
@@ -73,6 +79,7 @@ You can share opened on local machine port to world via https://ngrok.com/ `ngro
 
 Or you can import to Postman generated [OpenAPI 2.0 config](./docs/swagger.json) and check & execute allowed requests. 
 
+Register with /auth/sign-up, login with /auth/sign-in and use received token for other requests: set up Authorize value: `Bearer <token>`
 
 You can run **unit tests** with helping Makefile command: `make api-test`
 
@@ -83,14 +90,14 @@ Coverage: `todo`
 todo
 
 ## TODO:
-- добавить теги binding в структуры моделей для GIN парсинга
-- перепроверить проброс ошибок, правильность их обертывания, создать и использовать новые типы ошибок
 - добавить проброс контекста в слой репозиториев, чтобы отменять запросы к БД при сбоях
-- внедрить ответ со статусом http.StatusUnprocessableEntity на ошибки валидации
-- перепроверить всё апи через postman, фиксить баги если будут
+- перепроверить всё апи через postman / swagger UI, фиксить баги если будут
+- добавить пагинацию для хэндлеров GetAll - возвращающих коллекции (заголовками Pagination-, полями json и ответ 206 Partial Content)
 - добавить middleware для CORS (опционально)
 - добавить middleware для генерации и сохранении в хэдэр ответа ID запроса (опционально)
 - добавить middleware для записи ID запроса в лог, для связки с ошибками и отладки времени генерации ответа (опционально)
+- добавить настройки троттлинга запросов к API (где реализовать замыкание - middleware? GIN?) (ответ 429 Too Many Requests)
+- сделать правильный маппинг money во float ? (опционально, нет в ТЗ)
 - задеплоить сервис в heroku для демо
 - сделать provisioning конфигурации ansible чтоб на любую чистую виртуалку задеплоить по команде можно было для демо (опционально)
 - поправить мультистадийный докер образ на scratch

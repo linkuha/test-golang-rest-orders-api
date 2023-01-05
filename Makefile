@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := hello
+.DEFAULT_GOAL := help
 
 include .env
 export
@@ -34,8 +34,14 @@ api-run: ## run app
 	CGO_ENABLED=0 go run -tags automigrate cmd/api/main.go -logdir ./log --
 
 api-build-run: ## build OpenAPI, build and run app
-	swag-api-v1
+	make swag-api-v1
 	CGO_ENABLED=0 go build -o apisrv cmd/api/main.go
+	./apisrv -logdir ./log --
+
+api-build-run-vendor: ## build OpenAPI, build with modules from vendor and run app
+	make swag-api-v1
+	go env -w CGO_ENABLED=0
+	go build -mod vendor -o apisrv cmd/api/main.go
 	./apisrv -logdir ./log --
 
 migrate-create: ## create dummy migrations file
@@ -69,14 +75,11 @@ mocks: internal/domain/repository/*/* ## generate mocks to ./mocks (for reposito
 	@for file in $^; do ./mockgen.exe -source=$$file -destination=$(MOCKS_DESTINATION)/$$file; done
 .PHONY: mocks
 
-cover: ## get coverage profile
+cover: ## make coverage report
 	go test -short -count=1 -race -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out
 	rm coverage.out
 
 linter-hadolint: ## run linter for dockerfiles
 	git ls-files --exclude='Dockerfile*' --ignored | xargs docker run --rm -i hadolint/hadolint
-
-hello: ## hello
-	@echo "Welcome to commands shortcuts"
 

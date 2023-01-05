@@ -2,14 +2,15 @@ package v1_integration_test
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	v1 "github.com/linkuha/test-golang-rest-orders-api/internal/delivery/httpserver/v1"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
+	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/errs"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/repository"
 	mockProducts "github.com/linkuha/test-golang-rest-orders-api/internal/domain/repository/product/mocks"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
@@ -28,7 +29,7 @@ func TestGetProductByID(t *testing.T) {
 		LeftInStock: 1,
 		Prices: []entity.Price{
 			{
-				Price:    1.0,
+				Price:    "1.0",
 				Currency: "USD",
 			},
 		},
@@ -61,9 +62,9 @@ func TestGetProductByID(t *testing.T) {
 	data := rec.Body.String()
 
 	expected :=
-		`{"ID":"c401f9dc-1e68-4b44-82d9-3a93b09e3fe7","Name":"milk","Description":"","left_in_stock":1,"Prices":[{"Currency":"USD","Price":1}]}`
+		`{"id":"c401f9dc-1e68-4b44-82d9-3a93b09e3fe7","name":"milk","description":"","left_in_stock":1,"prices":[{"currency":"USD","price":"1.0"}]}`
 
-	require.Equal(t, rec.Code, http.StatusOK)
+	require.Equal(t, http.StatusOK, rec.Code)
 	require.Equal(t, expected, data)
 }
 
@@ -77,7 +78,7 @@ func TestGetProductServiceError(t *testing.T) {
 	repos := repository.Repository{}
 
 	repoProducts := mockProducts.NewMockRepository(ctrl)
-	repoProducts.EXPECT().Get(reqID).Return(nil, errors.New("db is down")).Times(1)
+	repoProducts.EXPECT().Get(reqID).Return(nil, errs.HandleErrorDB(sql.ErrConnDone)).Times(1)
 
 	repos.Products = repoProducts
 	handler := v1.NewController(repos)
@@ -100,9 +101,9 @@ func TestGetProductServiceError(t *testing.T) {
 	data := rec.Body.String()
 
 	expected :=
-		"{\"ok\":false,\"message\":\"" + v1.ServiceError.Error() + "\"}"
+		"{\"ok\":false,\"message\":\"" + v1.ErrServiceUnavailableText + "\"}"
 
-	require.Equal(t, rec.Code, http.StatusInternalServerError)
+	require.Equal(t, http.StatusServiceUnavailable, rec.Code)
 	require.Equal(t, expected, data)
 }
 
@@ -116,7 +117,7 @@ func TestCreateProduct(t *testing.T) {
 		LeftInStock: 1,
 		Prices: []entity.Price{
 			{
-				Price:    1.0,
+				Price:    "1.0",
 				Currency: "USD",
 			},
 		},
@@ -154,7 +155,7 @@ func TestCreateProduct(t *testing.T) {
 
 	expected := "{\"id\":\"" + exp + "\"}"
 
-	require.Equal(t, rec.Code, http.StatusOK)
+	require.Equal(t, http.StatusOK, rec.Code)
 	require.Equal(t, expected, data)
 }
 
@@ -167,7 +168,7 @@ func TestCreateProductServiceError(t *testing.T) {
 		LeftInStock: 1,
 		Prices: []entity.Price{
 			{
-				Price:    1.0,
+				Price:    "1.0",
 				Currency: "USD",
 			},
 		},
@@ -181,7 +182,7 @@ func TestCreateProductServiceError(t *testing.T) {
 	repos := repository.Repository{}
 
 	repoProducts := mockProducts.NewMockRepository(ctrl)
-	repoProducts.EXPECT().StoreWithPrices(product).Return("", errors.New("db is down")).Times(1)
+	repoProducts.EXPECT().StoreWithPrices(product).Return("", errs.HandleErrorDB(sql.ErrConnDone)).Times(1)
 
 	repos.Products = repoProducts
 	handler := v1.NewController(repos)
@@ -204,9 +205,9 @@ func TestCreateProductServiceError(t *testing.T) {
 	data := rec.Body.String()
 
 	expected :=
-		"{\"ok\":false,\"message\":\"" + v1.ServiceError.Error() + "\"}"
+		"{\"ok\":false,\"message\":\"" + v1.ErrServiceUnavailableText + "\"}"
 
-	require.Equal(t, rec.Code, http.StatusInternalServerError)
+	require.Equal(t, http.StatusServiceUnavailable, rec.Code)
 	require.Equal(t, expected, data)
 }
 
@@ -214,7 +215,7 @@ func TestCreateProductBadRequest(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	productJson := `{"name":"milk","left_in_stock":1,"prices":["price":1.0,"currency":"usd"]`
+	productJson := `{"name":"milk","left_in_stock":1,"prices":["price":"1.0"","currency":"usd"]`
 
 	// Create dummy repos, for don't use other
 	repos := repository.Repository{}
@@ -238,8 +239,76 @@ func TestCreateProductBadRequest(t *testing.T) {
 	data := rec.Body.String()
 
 	expected :=
-		"{\"ok\":false,\"message\":\"" + v1.MalformedRequest.Error() + "\"}"
+		"{\"ok\":false,\"message\":\"" + v1.ErrInputJSONText + "\"}"
 
-	require.Equal(t, rec.Code, http.StatusBadRequest)
+	require.Equal(t, http.StatusBadRequest, rec.Code)
+	require.Equal(t, expected, data)
+}
+
+func TestCreateProductValidationError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	productJson := `{"name":"milk","left_in_stock":-1,"prices":[{"price":"1.0","currency":"usd"}]}`
+
+	// Create dummy repos, for don't use other
+	repos := repository.Repository{}
+	handler := v1.NewController(repos)
+
+	// Init endpoint
+	r := gin.New()
+	r.POST("/products", handler.CreateProduct)
+
+	// Create request
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/products",
+		bytes.NewBufferString(productJson),
+	)
+
+	// Make request
+	r.ServeHTTP(rec, req)
+
+	data := rec.Body.String()
+
+	expected :=
+		"{\"ok\":false,\"message\":\"" + v1.ErrValidationText + "\"}"
+
+	require.Equal(t, http.StatusUnprocessableEntity, rec.Code)
+	require.Equal(t, expected, data)
+}
+
+func TestCreateProductInnerValidationError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	productJson := `{"name":"milk","left_in_stock":1,"prices":[{"price":"1.0","currency":"us"}]}`
+
+	// Create dummy repos, for don't use other
+	repos := repository.Repository{}
+	handler := v1.NewController(repos)
+
+	// Init endpoint
+	r := gin.New()
+	r.POST("/products", handler.CreateProduct)
+
+	// Create request
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/products",
+		bytes.NewBufferString(productJson),
+	)
+
+	// Make request
+	r.ServeHTTP(rec, req)
+
+	data := rec.Body.String()
+
+	expected :=
+		"{\"ok\":false,\"message\":\"" + v1.ErrValidationText + "\"}"
+
+	require.Equal(t, http.StatusUnprocessableEntity, rec.Code)
 	require.Equal(t, expected, data)
 }
