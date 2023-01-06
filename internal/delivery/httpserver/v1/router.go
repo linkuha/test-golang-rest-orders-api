@@ -52,9 +52,10 @@ func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
 		{
 			profile := api.Group("/profiles")
 			{
-				profile.POST("/", ctrl.createProfile)
+				profile.POST("/my", ctrl.createMyProfile)
+				profile.GET("/my", ctrl.getMyProfile)
 				profile.GET("/:id", ctrl.getProfile)
-				profile.PUT("/:id", ctrl.updateProfile)
+				profile.PUT("/:id", ctrl.updateProfile) // e.g. under admin ACL
 			}
 
 			followers := api.Group("/followers")
@@ -82,7 +83,7 @@ func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
 				orderProducts := orders.Group(":id/products")
 				{
 					orderProducts.POST("/", ctrl.addOrderProduct)
-					orderProducts.GET("/", ctrl.getAllOrders)
+					orderProducts.GET("/", ctrl.getAllOrderProducts)
 					orderProducts.DELETE("/:productID", ctrl.deleteOrderProduct)
 				}
 			}

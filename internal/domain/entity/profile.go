@@ -22,7 +22,8 @@ func (u *Profile) Validate() error {
 		validation.Field(&u.UserID, validation.Required, is.UUIDv4),
 		validation.Field(&u.FirstName, validation.Required),
 		validation.Field(&u.LastName, validation.Required),
-		validation.Field(&u.Sex, validation.Required),
+		validation.Field(&u.Sex, validation.Required, validation.Length(1, 1)),
+		validation.Field(&u.Age, validation.Required),
 	)
 }
 

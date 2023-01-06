@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS product_prices (
     id bigserial NOT NULL UNIQUE,
     product_id uuid REFERENCES products(id) ON DELETE CASCADE NOT NULL,
     currency char(3) NOT NULL,
-    price money NOT NULL DEFAULT 0
+    price numeric(15,6) NOT NULL DEFAULT 0
 --     status smallint NOT NULL,
 );
 CREATE UNIQUE INDEX uq_product_currency on product_prices (product_id, currency);
@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS user_orders (
     user_id uuid REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     number bigint NOT NULL
 );
+CREATE UNIQUE INDEX uq_user_orders on user_orders (user_id, number);
 
 CREATE TABLE IF NOT EXISTS user_order_products (
     id bigserial NOT NULL UNIQUE,

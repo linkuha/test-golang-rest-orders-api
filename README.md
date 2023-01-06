@@ -25,8 +25,7 @@ You can use OpenAPI configuration for research from testing section below.
 * Не использую ORM (gorm или другие), т.к. это не очень GO-friendly подход, тяреем по скорости (много рефлексии)
 * Сущность user намерено не соответствует ТЗ. Решил усложнить, отделить сущность профиля от кредов. 
 Нет нужды таскать с собой все данные, профиль может расширяться. В этом кейсе профиль можно создать другим этапом после регистрации.
-Апи закрыто токеном JWT. Есть другой подход - хранение ID авторизационной сессии в куках, но мне он меньше нравится
-* Реализован middleware для авторизации запросов пользователя к API через JWT токен
+* Реализован middleware для авторизации запросов пользователя к API через JWT токен. Есть другой подход - хранение ID авторизационной сессии в куках.
 * Валидация в моделях, используется пакет go-ozzo/ozzo-validation/v4, чтобы не дублировать похожий код.
 * Для валидации на уровне биндинга структуры из запроса используется стандартные теги - валидатора GIN - go-playground/validator
 * В репозитории продукта входной аргумент - не модель, а DTO ProductUpdateInput, был сделан для возможности присылать только те поля,
@@ -35,10 +34,11 @@ You can use OpenAPI configuration for research from testing section below.
 много дополнительного когда. Поэтому в основном, мы передаём заведомо валидные сущности.
 * Не во всех хэндлерах логика вынесена в юзкейс, а используется репозиторий напрямую - доделать.
 * Написаны unit-тесты для слоя Entities (проверяется валидация моделей).
-* Написаны unit-тесты для слоя Use Cases для работы с сущностью User.
-* Написаны unit-тесты для слоя Repositories для работы с сущностью User.
+* Написаны unit-тесты для слоя Repositories для работы с сущностью User (база мокнута через DATA-DOG/go-sqlmock).
+* Написаны unit-тесты для слоя Use Cases для работы с сущностью User (моки репозиториев через golang/mock).
 * Написаны integration-тесты для слоя Controllers для работы с сущностью Products. 
 Дальнейшее тестирование хендлеров - наплодит много кода, даже с учетом проработки табличных тестов.
+* Не нравится, что для тестов не используется реальная тестовая БД. Таким образом не проверяется само выполнение запросов/транзакций.
 * Проработаны кастомные типа ошибок, для клиента - более общие ошибки, корректные статусы ответов. 
 Для дебага - внутренние, с возможностью получения стека. 
 * Добавлен middleware для генерации и сохранении в хэдэр ответа - ID запроса (gin-contrib/requestid)
@@ -74,9 +74,7 @@ PS. Фиксацию зависимостей в ./vendor для git можно 
 2. You can build & run app and ready-to-use database (Postgres with enabled extension for UUID generating)
 for tests as production-like version of app with Docker Compose: `make up`. 
 In that case you must not provide env params for database, it will be overwritten in [docker-compose.yml](./docker-compose.yml).
-Supporting of DATABASE_URL was used for ability of easy deploy on Heroku. 
-
-
+Supporting of DATABASE_URL was used for ability of easy deploy on Heroku.
 
 ## Testing
 
@@ -97,11 +95,9 @@ Coverage: `todo`
 todo
 
 ## TODO:
-- перепроверить всё апи через postman / swagger UI, фиксить баги если будут
 - добавить пагинацию для хэндлеров GetAll - возвращающих коллекции (заголовками Pagination-, полями json и ответ 206 Partial Content)
-- добавить middleware для CORS (опционально)
+так же можно переделать на такой вариант - для getall вовзращать коллекцию идентификаторов. затем по get(ids) - возвращать нужные (опционально)
 - добавить настройки троттлинга запросов к API (aviddiviner/gin-limit, axiaoxin-com/ratelimiter middleware?) (ответ 429 Too Many Requests)
-- сделать правильный маппинг money во float ? (опционально, нет в ТЗ)
 - задеплоить сервис в heroku для демо
 - сделать provisioning конфигурации ansible чтоб на любую чистую виртуалку задеплоить по команде можно было для демо (опционально)
 - поправить мультистадийный докер образ на scratch

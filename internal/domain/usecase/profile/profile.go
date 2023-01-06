@@ -15,16 +15,20 @@ func NewProfileUseCase(repo profile.Repository) *UseCase {
 	return &UseCase{repo: repo}
 }
 
-func (uc *UseCase) Create(ctx context.Context, profile entity.Profile) (int, error) {
+func (uc *UseCase) Create(ctx context.Context, profile entity.Profile) error {
 	if err := profile.Validate(); err != nil {
-		return 0, errs.NewErrorWrapper(errs.Validation, err, "profile validation error")
+		return errs.NewErrorWrapper(errs.Validation, err, "profile validation error")
 	}
 
-	res, err := uc.repo.Store(ctx, &profile)
-	if err != nil {
-		return 0, errs.NewErrorWrapper(errs.Database, err, "error from profile repo")
+	if _, err := uc.repo.GetByUserID(ctx, profile.UserID); err == nil {
+		return errs.NewErrorWrapper(errs.Exist, nil, "already exist")
 	}
-	return res, nil
+
+	_, err := uc.repo.Store(ctx, &profile)
+	if err != nil {
+		return errs.NewErrorWrapper(errs.Database, err, "error from profile repo")
+	}
+	return nil
 }
 
 func (uc *UseCase) Remove(ctx context.Context, profile entity.Profile) error {

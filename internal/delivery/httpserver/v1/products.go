@@ -98,7 +98,7 @@ func (ctrl *Controller) getAllProducts(c *gin.Context) {
 // @Summary Update product
 // @Security ApiKeyAuth
 // @Tags product
-// @Description update product
+// @Description update product (don't updates prices - todo)
 // @ID product-update
 // @Accept  json
 // @Produce  json

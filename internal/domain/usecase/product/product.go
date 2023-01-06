@@ -20,6 +20,11 @@ func (uc *UseCase) GetByID(ctx context.Context, productID string) (*entity.Produ
 	if err != nil {
 		return nil, errs.NewErrorWrapper(errs.Database, err, "error from product repo")
 	}
+	prices, err2 := uc.repo.GetPrices(ctx, productID)
+	if err2 != nil {
+		return nil, errs.NewErrorWrapper(errs.Database, err2, "error from product repo")
+	}
+	res.Prices = *prices
 	return res, nil
 }
 
@@ -27,6 +32,13 @@ func (uc *UseCase) GetAll(ctx context.Context) (*[]entity.Product, error) {
 	res, err := uc.repo.GetAll(ctx)
 	if err != nil {
 		return nil, errs.NewErrorWrapper(errs.Database, err, "error from product repo")
+	}
+	for i := 0; i < len(*res); i++ {
+		prices, err2 := uc.repo.GetPrices(ctx, (*res)[i].ID)
+		if err2 != nil {
+			return nil, errs.NewErrorWrapper(errs.Database, err2, "error from product repo")
+		}
+		(*res)[i].Prices = *prices
 	}
 	return res, nil
 }

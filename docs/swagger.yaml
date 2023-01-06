@@ -22,6 +22,13 @@ definitions:
     - number
     - user_id
     type: object
+  entity.OrderProductView:
+    properties:
+      amount:
+        type: integer
+      id:
+        type: string
+    type: object
   entity.Price:
     properties:
       currency:
@@ -486,12 +493,12 @@ paths:
       description: Add product to order
       operationId: order-product-add
       parameters:
-      - description: order data
+      - description: product data
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/entity.Order'
+          $ref: '#/definitions/entity.OrderProductView'
       - description: Order ID
         in: path
         name: id
@@ -501,9 +508,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: id
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.statusResponse'
         "400":
           description: Bad Request
           schema:
@@ -730,7 +737,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: update product
+      description: update product (don't updates prices - todo)
       operationId: product-update
       parameters:
       - description: Product ID
@@ -772,47 +779,6 @@ paths:
       summary: Update product
       tags:
       - product
-  /profiles:
-    post:
-      consumes:
-      - application/json
-      description: Create profile for user
-      operationId: profile-create
-      parameters:
-      - description: profile data
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/entity.Profile'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: id
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-        default:
-          description: ""
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Create profile
-      tags:
-      - profile
   /profiles/{id}:
     get:
       consumes:
@@ -896,6 +862,80 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update profile
+      tags:
+      - profile
+  /profiles/my:
+    get:
+      consumes:
+      - application/json
+      description: get profile of logged user
+      operationId: profile-get-my
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Profile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get my profile
+      tags:
+      - profile
+    post:
+      consumes:
+      - application/json
+      description: Create profile for logged user
+      operationId: profile-create-my
+      parameters:
+      - description: profile data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Profile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: id
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create my profile
       tags:
       - profile
 securityDefinitions:

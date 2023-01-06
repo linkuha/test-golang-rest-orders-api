@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/errs"
 	"net/http"
 )
@@ -12,12 +13,13 @@ var (
 )
 
 const (
-	ErrServiceInternalText    = "server internal runtime error, contact support"
+	ErrServiceInternalText    = "internal server error, contact support with your request id"
 	ErrServiceUnavailableText = "temporary server error, try later"
 	ErrAuthAPIText            = "invalid API authorization"
 	ErrCredentialsText        = "invalid username or password"
 	ErrInputJSONText          = "bad input json"
 	ErrValidationText         = "validation error"
+	ErrNotFoundText           = "resource is not found"
 )
 
 type errorHandlingDetails struct {
@@ -64,6 +66,7 @@ func handleDomainError(e error) errorHandlingDetails {
 			resErr.Code = http.StatusCreated
 		case errs.NotExist:
 			resErr.Code = http.StatusNotFound
+			resErr.ClientError = ErrNotFoundText
 		case errs.APIAuthorization:
 			resErr.Code = http.StatusUnauthorized
 			resErr.ClientError = ErrAuthAPIText
@@ -86,7 +89,7 @@ func handleDomainError(e error) errorHandlingDetails {
 			resErr.Code = http.StatusServiceUnavailable
 		case errs.Validation:
 			resErr.Code = http.StatusUnprocessableEntity
-			resErr.ClientError = ErrValidationText
+			resErr.ClientError = fmt.Sprintf("%s: %s", ErrValidationText, digErr.Error())
 		case errs.Unanticipated:
 			resErr.Code = http.StatusInternalServerError
 		}

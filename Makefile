@@ -10,6 +10,7 @@ help: ## Display this help screen
 up: docker-up
 down: docker-down
 restart: down up
+rebuild: swag-api-v1 docker-build restart
 
 docker-up: ## docker up
 	docker-compose up -d

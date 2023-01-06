@@ -7,11 +7,11 @@ import (
 	"net/http"
 )
 
-// @Summary Create profile
+// @Summary Create my profile
 // @Security ApiKeyAuth
 // @Tags profile
-// @Description Create profile for user
-// @ID profile-create
+// @Description Create profile for logged user
+// @ID profile-create-my
 // @Accept  json
 // @Produce  json
 // @Param input body entity.Profile true "profile data"
@@ -19,8 +19,8 @@ import (
 // @Failure 400,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
-// @Router /profiles [post]
-func (ctrl *Controller) createProfile(c *gin.Context) {
+// @Router /profiles/my [post]
+func (ctrl *Controller) createMyProfile(c *gin.Context) {
 	var input entity.Profile
 
 	if err := c.BindJSON(&input); err != nil {
@@ -36,15 +36,12 @@ func (ctrl *Controller) createProfile(c *gin.Context) {
 	input.UserID = userId
 
 	uc := profile.NewProfileUseCase(ctrl.repos.Profiles)
-	id, err := uc.Create(ctrl.ctx, input)
-	if err != nil {
+	if err := uc.Create(ctrl.ctx, input); err != nil {
 		newErrorResponse(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
-	})
+	c.JSON(http.StatusOK, statusResponse{true})
 }
 
 // @Summary Get profile
@@ -68,6 +65,34 @@ func (ctrl *Controller) getProfile(c *gin.Context) {
 	}
 
 	p, err := ctrl.repos.Profiles.GetByUserID(ctrl.ctx, id)
+	if err != nil {
+		newErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, p)
+}
+
+// @Summary Get my profile
+// @Security ApiKeyAuth
+// @Tags profile
+// @Description get profile of logged user
+// @ID profile-get-my
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} entity.Profile
+// @Failure 400,404 {object} errorResponse
+// @Failure 500 {object} errorResponse
+// @Failure default {object} errorResponse
+// @Router /profiles/my [get]
+func (ctrl *Controller) getMyProfile(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		newErrorResponse(c, err)
+		return
+	}
+
+	p, err := ctrl.repos.Profiles.GetByUserID(ctrl.ctx, userId)
 	if err != nil {
 		newErrorResponse(c, err)
 		return

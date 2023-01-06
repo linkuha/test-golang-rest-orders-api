@@ -28,11 +28,11 @@ func TestGetProductByID(t *testing.T) {
 		ID:          reqID,
 		Name:        "milk",
 		LeftInStock: 1,
-		Prices: []entity.Price{
-			{
-				Price:    "1.0",
-				Currency: "USD",
-			},
+	}
+	expPrices := &[]entity.Price{
+		{
+			Price:    1.05,
+			Currency: "USD",
 		},
 	}
 
@@ -43,6 +43,7 @@ func TestGetProductByID(t *testing.T) {
 
 	repoProducts := mockProducts.NewMockRepository(ctrl)
 	repoProducts.EXPECT().Get(ctx, reqID).Return(exp, nil).Times(1)
+	repoProducts.EXPECT().GetPrices(ctx, reqID).Return(expPrices, nil).Times(1)
 
 	repos.Products = repoProducts
 	handler := v1.NewController(ctx, repos)
@@ -65,7 +66,7 @@ func TestGetProductByID(t *testing.T) {
 	data := rec.Body.String()
 
 	expected :=
-		`{"id":"c401f9dc-1e68-4b44-82d9-3a93b09e3fe7","name":"milk","description":"","left_in_stock":1,"prices":[{"currency":"USD","price":"1.0"}]}`
+		`{"id":"c401f9dc-1e68-4b44-82d9-3a93b09e3fe7","name":"milk","description":"","left_in_stock":1,"prices":[{"currency":"USD","price":1.05}]}`
 
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.Equal(t, expected, data)
@@ -122,7 +123,7 @@ func TestCreateProduct(t *testing.T) {
 		LeftInStock: 1,
 		Prices: []entity.Price{
 			{
-				Price:    "1.0",
+				Price:    1.05,
 				Currency: "USD",
 			},
 		},
@@ -175,7 +176,7 @@ func TestCreateProductServiceError(t *testing.T) {
 		LeftInStock: 1,
 		Prices: []entity.Price{
 			{
-				Price:    "1.0",
+				Price:    1.05,
 				Currency: "USD",
 			},
 		},
@@ -224,7 +225,7 @@ func TestCreateProductBadRequest(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	productJson := `{"name":"milk","left_in_stock":1,"prices":["price":"1.0"","currency":"usd"]`
+	productJson := `{"name":"milk","left_in_stock":1,"prices":["price":1.05,"currency":"usd"]`
 
 	// Create dummy repos, for don't use other
 	repos := repository.Repository{}
@@ -258,7 +259,7 @@ func TestCreateProductValidationError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	productJson := `{"name":"milk","left_in_stock":-1,"prices":[{"price":"1.0","currency":"usd"}]}`
+	productJson := `{"name":"milk","left_in_stock":-1,"prices":[{"price":1.05,"currency":"usd"}]}`
 
 	// Create dummy repos, for don't use other
 	repos := repository.Repository{}
@@ -281,18 +282,15 @@ func TestCreateProductValidationError(t *testing.T) {
 
 	data := rec.Body.String()
 
-	expected :=
-		"{\"ok\":false,\"message\":\"" + v1.ErrValidationText + "\"}"
-
 	require.Equal(t, http.StatusUnprocessableEntity, rec.Code)
-	require.Equal(t, expected, data)
+	require.Contains(t, data, v1.ErrValidationText)
 }
 
 func TestCreateProductInnerValidationError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	productJson := `{"name":"milk","left_in_stock":1,"prices":[{"price":"1.0","currency":"us"}]}`
+	productJson := `{"name":"milk","left_in_stock":1,"prices":[{"price":1.05,"currency":"us"}]}`
 
 	// Create dummy repos, for don't use other
 	repos := repository.Repository{}
@@ -315,9 +313,6 @@ func TestCreateProductInnerValidationError(t *testing.T) {
 
 	data := rec.Body.String()
 
-	expected :=
-		"{\"ok\":false,\"message\":\"" + v1.ErrValidationText + "\"}"
-
 	require.Equal(t, http.StatusUnprocessableEntity, rec.Code)
-	require.Equal(t, expected, data)
+	require.Contains(t, data, v1.ErrValidationText)
 }

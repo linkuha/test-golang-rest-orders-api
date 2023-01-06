@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/entity"
 	"github.com/linkuha/test-golang-rest-orders-api/internal/domain/errs"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"strings"
 )
@@ -26,7 +27,7 @@ func newProductPostgresRepository(d *sql.DB) Repository {
 }
 
 func (r *repo) Get(ctx context.Context, id string) (*entity.Product, error) {
-	query := fmt.Sprintf("SELECT id, `name`, description, left_in_stock FROM %s WHERE id = $1", productTableName)
+	query := fmt.Sprintf("SELECT id, name, description, left_in_stock FROM %s WHERE id = $1", productTableName)
 	log.Debug().Msg("Query: " + query)
 
 	row := r.db.QueryRowContext(ctx, query, id)
@@ -40,11 +41,11 @@ func (r *repo) Get(ctx context.Context, id string) (*entity.Product, error) {
 }
 
 func (r *repo) GetAll(ctx context.Context) (*[]entity.Product, error) {
-	query := fmt.Sprintf("SELECT id, `name`, description, left_in_stock FROM %s", productTableName)
+	query := fmt.Sprintf("SELECT id, name, description, left_in_stock FROM %s", productTableName)
 	log.Debug().Msg("Query: " + query)
 
 	rows, err := r.db.QueryContext(ctx, query)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, errs.HandleErrorDB(err)
 	}
 	defer func(rows *sql.Rows) {
@@ -73,7 +74,7 @@ func (r *repo) GetPrices(ctx context.Context, id string) (*[]entity.Price, error
 	log.Debug().Msg("Query: " + query)
 
 	rows, err := r.db.QueryContext(ctx, query, id)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, errs.HandleErrorDB(err)
 	}
 	defer func(rows *sql.Rows) {
@@ -98,7 +99,7 @@ func (r *repo) GetPrices(ctx context.Context, id string) (*[]entity.Price, error
 
 func (r *repo) Store(ctx context.Context, product *entity.Product) (string, error) {
 	var id string
-	query := fmt.Sprintf("INSERT INTO %s (`name`, description, left_in_stock) VALUES ($1, $2, $3) RETURNING id", productTableName)
+	query := fmt.Sprintf("INSERT INTO %s (name, description, left_in_stock) VALUES ($1, $2, $3) RETURNING id", productTableName)
 	log.Debug().Msg("Query: " + query)
 
 	row := r.db.QueryRowContext(ctx, query, product.Name, product.Description, product.LeftInStock)
@@ -118,7 +119,7 @@ func (r *repo) StoreWithPrices(ctx context.Context, product *entity.Product) (st
 	defer tx.Rollback()
 
 	var productID string
-	query := fmt.Sprintf("INSERT INTO %s (`name`, description, left_in_stock) VALUES ($1, $2, $3) RETURNING id", productTableName)
+	query := fmt.Sprintf("INSERT INTO %s (name, description, left_in_stock) VALUES ($1, $2, $3) RETURNING id", productTableName)
 	log.Debug().Msg("Query: " + query)
 
 	row := tx.QueryRowContext(ctx, query, product.Name, product.Description, product.LeftInStock)

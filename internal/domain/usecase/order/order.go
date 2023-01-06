@@ -52,8 +52,8 @@ func (uc *UseCase) Create(ctx context.Context, order entity.Order) (string, erro
 }
 
 func (uc *UseCase) AddProduct(ctx context.Context, p *entity.Product, op *entity.OrderProduct) error {
-	if err := p.Validate(); err != nil {
-		return errs.NewErrorWrapper(errs.Validation, err, "order validation error")
+	if err := op.Validate(); err != nil {
+		return errs.NewErrorWrapper(errs.Validation, err, "order product validation error")
 	}
 
 	if op.Amount > p.LeftInStock {

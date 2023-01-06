@@ -597,12 +597,12 @@ const docTemplate = `{
                 "operationId": "order-product-add",
                 "parameters": [
                     {
-                        "description": "order data",
+                        "description": "product data",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/entity.Order"
+                            "$ref": "#/definitions/entity.OrderProductView"
                         }
                     },
                     {
@@ -615,9 +615,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "id",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.statusResponse"
                         }
                     },
                     "400": {
@@ -904,7 +904,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "update product",
+                "description": "update product (don't updates prices - todo)",
                 "consumes": [
                     "application/json"
                 ],
@@ -1028,14 +1028,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/profiles": {
-            "post": {
+        "/profiles/my": {
+            "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Create profile for user",
+                "description": "get profile of logged user",
                 "consumes": [
                     "application/json"
                 ],
@@ -1045,8 +1045,59 @@ const docTemplate = `{
                 "tags": [
                     "profile"
                 ],
-                "summary": "Create profile",
-                "operationId": "profile-create",
+                "summary": "Get my profile",
+                "operationId": "profile-get-my",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Profile"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create profile for logged user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Create my profile",
+                "operationId": "profile-create-my",
                 "parameters": [
                     {
                         "description": "profile data",
@@ -1254,6 +1305,17 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.OrderProductView": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "id": {
                     "type": "string"
                 }
             }

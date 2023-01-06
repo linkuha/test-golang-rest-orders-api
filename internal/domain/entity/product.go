@@ -14,8 +14,8 @@ type Product struct {
 }
 
 type Price struct {
-	Currency string `json:"currency" binding:"required"`
-	Price    string `json:"price" binding:"required"` // TODO float64?
+	Currency string  `json:"currency" binding:"required"`
+	Price    float64 `json:"price" binding:"required"`
 	//Status   string
 }
 

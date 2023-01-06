@@ -15,16 +15,21 @@ import (
 // @ID order-product-add
 // @Accept  json
 // @Produce  json
-// @Param input body entity.Order true "order data"
+// @Param input body entity.OrderProductView true "product data"
 // @Param id path string true "Order ID"
-// @Success 200 {string} string "id"
+// @Success 200 {object} statusResponse
 // @Failure 400,403,404 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Failure default {object} errorResponse
 // @Router /orders/{id}/products [post]
 func (ctrl *Controller) addOrderProduct(c *gin.Context) {
-	var input entity.OrderProduct
+	orderID := c.Param("id")
+	if orderID == "" {
+		newErrorResponse(c, emptyParameterID)
+		return
+	}
 
+	var input entity.OrderProductView
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, newJSONBindingErrorWrapper(err))
 		return
@@ -36,8 +41,8 @@ func (ctrl *Controller) addOrderProduct(c *gin.Context) {
 		return
 	}
 
-	uc := order.NewOrderUseCase(ctrl.repos.Orders)
-	o, err := uc.GetByID(ctrl.ctx, input.OrderID)
+	ouc := order.NewOrderUseCase(ctrl.repos.Orders)
+	o, err := ouc.GetByID(ctrl.ctx, orderID)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
@@ -49,13 +54,18 @@ func (ctrl *Controller) addOrderProduct(c *gin.Context) {
 	}
 
 	puc := product.NewProductUseCase(ctrl.repos.Products)
-	p, err := puc.GetByID(ctrl.ctx, input.ProductID)
+	p, err := puc.GetByID(ctrl.ctx, input.ID)
 	if err != nil {
 		newErrorResponse(c, err)
 		return
 	}
 
-	if err = uc.AddProduct(ctrl.ctx, p, &input); err != nil {
+	op := entity.OrderProduct{
+		OrderID:   orderID,
+		ProductID: input.ID,
+		Amount:    input.Amount,
+	}
+	if err = ouc.AddProduct(ctrl.ctx, p, &op); err != nil {
 		newErrorResponse(c, err)
 		return
 	}

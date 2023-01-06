@@ -22,14 +22,14 @@ func newProfilePostgresRepository(d *sql.DB) Repository {
 }
 
 func (r *repo) GetByUserID(ctx context.Context, userID string) (*entity.Profile, error) {
-	query := fmt.Sprintf(`SELECT first_name, last_name, middle_name,
+	query := fmt.Sprintf(`SELECT user_id, first_name, last_name, middle_name,
 		TRIM(CONCAT_WS(' ', last_name, first_name, middle_name)) AS full_name, sex, age FROM %s WHERE user_id = $1`, tableName)
 	log.Debug().Msg("Query: " + query)
 
 	row := r.db.QueryRowContext(ctx, query, userID)
 	profile := entity.Profile{}
 
-	err := row.Scan(&profile.FirstName, &profile.LastName, &profile.MiddleName, &profile.FullName, &profile.Sex, &profile.Age)
+	err := row.Scan(&profile.UserID, &profile.FirstName, &profile.LastName, &profile.MiddleName, &profile.FullName, &profile.Sex, &profile.Age)
 	if err != nil {
 		return nil, errs.HandleErrorDB(err)
 	}

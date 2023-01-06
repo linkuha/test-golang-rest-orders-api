@@ -8,7 +8,7 @@ import (
 type Order struct {
 	ID     string `json:"id"`
 	UserID string `json:"user_id" binding:"required"`
-	Number int    `binding:"required"`
+	Number int    `json:"number" binding:"required"`
 }
 
 type OrderProduct struct {
