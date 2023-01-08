@@ -1,0 +1,13 @@
+all:
+  vars:
+    host_key_checking: false
+  children:
+    app:
+      hosts:
+        <PASTE SERVER LABEL>:
+          ansible_connection: ssh
+          ansible_user: root
+          ansible_ssh_private_key_file: /root/ssh_keys/test_server_openssh_private_key
+          ansible_host: <PASTE IP>
+          ansible_port: 22
+          ansible_ssh_common_args: '-o StrictHostKeyChecking=no'

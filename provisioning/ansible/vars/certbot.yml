@@ -1,0 +1,6 @@
+---
+certbot_email: mail@go-rest-test.pudich.ru
+# if empty, pass braces = []
+certbot_hosts_wildcard: []
+certbot_hosts_single:
+  - go-rest-test.pudich.ru

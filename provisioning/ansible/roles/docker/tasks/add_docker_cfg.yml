@@ -1,0 +1,6 @@
+---
+- name: Add docker daemon.json settings
+  template:
+    src: templates/daemon.conf
+    dest: /etc/docker/daemon.json
+  notify: Reload docker daemon config

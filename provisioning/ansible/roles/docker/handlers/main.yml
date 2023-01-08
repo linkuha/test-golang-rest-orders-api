@@ -1,0 +1,9 @@
+---
+- name: Start docker on boot
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Reload docker daemon config
+  shell: "kill -s SIGHUP $(pidof dockerd)"

@@ -9,22 +9,20 @@ RUN set -x \
 
 RUN CGO_ENABLED=0 GOOS=linux go build -tags automigrate -a -o apisrv cmd/api/main.go
 
-FROM alpine
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
+RUN chmod +x /wait
+
+FROM scratch
 
 MAINTAINER Alex Pudich <pudichas@gmail.com>
 
-RUN apk --no-cache add postgresql-client bash \
-    && rm -rf /var/cache/apk/*
-
 WORKDIR /app
 
-COPY /docker/common/wait-for-it.sh ./
-RUN chmod +x wait-for-it.sh
-
-COPY --from=build /apisrv ./
-COPY --from=build /.env ./
-COPY --from=build /config/config.yml ./config/config.yml
-COPY --from=build /database ./
+COPY --from=build /app/apisrv ./
+COPY --from=build /wait /wait
+COPY /.env ./
+COPY /config/config.yml ./config/config.yml
+COPY /database ./database/
 
 CMD ["/app/apisrv"]
 

@@ -1,0 +1,72 @@
+---
+- name: Update apt packages
+  apt:
+    update_cache: yes
+
+- name: Install dependencies
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - lsb-release
+    state: present
+    update_cache: yes
+
+- name: Add GPG key
+  shell: mkdir -p /etc/apt/keyrings && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
+
+- name: Get Debian Version
+  shell: dpkg --print-architecture
+  register: debian_arch
+  ignore_errors: true
+  when: ansible_facts['distribution'] == 'Debian'
+
+- name: Set up the repository
+  apt_repository:
+    repo: "deb [arch={{ debian_arch.stdout }} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian {{ ansible_facts['distribution_release'] }} stable"
+    state: present
+    filename: docker
+    update_cache: yes
+  when: ansible_facts['distribution'] == 'Debian'
+
+- name: Update apt packages
+  apt:
+    update_cache: yes
+
+- name: Install Docker
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+  notify: Start docker on boot
+
+- name: Install Docker Compose
+  get_url:
+    url: https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-{{ ansible_facts['system'] | lower }}-{{ ansible_facts['userspace_architecture'] }}
+    dest: /usr/local/bin/docker-compose
+    group: docker
+    mode: 'u+x,g+x'
+
+- name: Set periodic Docker prune
+  cron:
+    name: docker-prune
+    job: 'docker system prune -f --filter "until=$((30*24))h"'
+    minute: '0'
+    hour: '1'
+
+- name: Remove useless packages
+  apt:
+    autoclean: yes
+
+- name: Remove useless dependencies
+  apt:
+    autoremove: yes
+
+- name: Docker daemon.json settings
+  import_tasks: add_docker_cfg.yml

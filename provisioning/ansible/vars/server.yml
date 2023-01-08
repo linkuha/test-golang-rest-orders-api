@@ -1,0 +1,6 @@
+---
+##@ref https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html#variables-and-vaults
+current_user: "root"
+ssh_public_key_file: "/root/ssh_keys/test_server_openssh_public_key"
+ansible_ssh_private_key_file: "/root/ssh_keys/test_server_openssh_private_key"
+

@@ -8,7 +8,7 @@ import (
 
 const (
 	Version           = "1.0.0beta"
-	DefaultLogDir     = "/var/log/app"
+	DefaultLogDir     = "/var/log"
 	DefaultConfigPath = "./config/config.yml"
 	DefaultLogLevel   = "info"
 )
@@ -37,6 +37,7 @@ type FileParams struct {
 }
 
 type MergedParams struct {
+	LogInFile  bool
 	LogDir     string
 	LogLevel   string
 	ConfigPath string
@@ -93,6 +94,7 @@ func InitConfig(flags AppFlags) *Config {
 		FileParams: yaml,
 		flags:      flags,
 		Merged: MergedParams{
+			LogInFile:  getLogInFile(),
 			LogLevel:   getLogLevel(env, flags),
 			LogDir:     getLogDir(env, flags),
 			ConfigPath: configPath,
@@ -171,6 +173,26 @@ func getLogDir(env EnvParams, flags AppFlags) string {
 		}
 	}
 	return logDir
+}
+
+func getLogInFile() bool {
+	switch os.Getenv("LOG_IN_FILE_ENABLED") {
+	case "":
+		fallthrough
+	case "false":
+		fallthrough
+	case "0":
+		fallthrough
+	case "no":
+		return false
+	case "1":
+		fallthrough
+	case "true":
+		fallthrough
+	case "yes":
+		return true
+	}
+	return false
 }
 
 func getLogLevel(env EnvParams, flags AppFlags) string {

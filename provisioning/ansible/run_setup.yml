@@ -1,0 +1,16 @@
+---
+- name: Set Up
+  hosts: app
+  remote_user: root
+  gather_facts: yes
+  vars_files:
+    - ./vars/server.yml
+    - ./vars/swap.yml
+    - ./vars/docker.yml
+    - ./vars/certbot.yml
+  roles:
+    - docker
+    - certbot
+    - swap
+    - user
+

@@ -16,8 +16,8 @@ You can use OpenAPI configuration for research from testing section below.
 ## Comments
 
 * Намерено выбран для маршрутизации фреймворк Джин (GIN), т.к. обладает хорошоей производительностью и прост.
-Хороший мультиплексор gorilla/mux имеет меньше возможностей, и к сожалению, переведён в архив до начала написания сервиса (декабрь 22), поэтому не был выбран.
-В качестве другого варианта можно было выбрать labstack/echo.
+Хороший мультиплексор gorilla/mux имеет меньше возможностей, и к сожалению, переведён в архив до начала написания сервиса (декабрь 22), 
+поэтому не был выбран. В качестве другого варианта можно было выбрать labstack/echo.
 * Намерено выбрана стандартная либа для общения с БД (database/sql, драйвер lib/pq). 
 Можно использовать более мощный и удобный jackc/pgx и удобный fluent билдер запросов (masterminds/squirrel).
 Но это тестовый пример, этого достаточно.
@@ -62,7 +62,7 @@ PS: see [Makefile](./Makefile) for handy useful short commands (e.g. for build/r
 
 For example, generate dummy file for migrations, located in `database/migrations` directory: `make migrate-create`.
 
-### Build
+### Build for development
 
 1. You can build and run app with help of Makefile: `make api-build-run`. 
 It will generate swag documentation, build binary and run with local installed compiler. 
@@ -76,6 +76,64 @@ for tests as production-like version of app with Docker Compose: `make up`.
 In that case you must not provide env params for database, it will be overwritten in [docker-compose.yml](./docker-compose.yml).
 Supporting of DATABASE_URL was used for ability of easy deploy on Heroku.
 
+### Build for production and Deploy
+
+1. Prepare configs
+Provide own env params in [.env.prod](./.env.prod) file (based on .env.sample) with production params (e.g., disable debug modes (GIN, logger), logging in file).
+For setup clean server, install Docker and pass SSH key to server will be using Ansible. 
+Modify next files for your specific variables (e.g. domain): `./provisioning/ansible/vars/*`. 
+And modify params of servers for deploy: `./provisioning/ansible/hosts.yml` (group of servers - app) based on hosts.yml.dist sample in same directory.
+
+For deploy to server will be using Docker Registry and Makefile.
+Modify domain in gateway (nginx) image: `./docker/production/nginx-gateway/sites-enabled/api.conf`
+
+Add OpenSSH keypair to `./provisioning/ssh_keys/` and name it as: `test_server_openssh_private_key` and `test_server_openssh_public_key`.
+This names using in Ansible configs for connection to server and setup soft on behalf of root. 
+This also using for upload private key to deployment server to user "deploy", for running not from root (but for simplify - here used the same keys).
+
+Also export common vars of your deployment server and docker repo (replace for your `REGISTRY=DOMAIN[:PORT]`):
+```
+export REGISTRY=docker.pudich.ru
+export IMAGE_TAG=1
+export DEPLOY_HOST=37.228.116.222
+export DEPLOY_PORT=22 
+export DEPLOY_KEY=$(pwd)/provisioning/ssh_keys/test_server_openssh_private_key
+chmod 600 ${DEPLOY_KEY}
+```
+It keeps in terminal session and usable for Makefile commands.
+You can use constant IMAGE_TAG=1 for rebuild images and rewrite it, for no tracking version and disk space economy.
+
+Connect to your docker registry (own service / GitLab registry / DockerHub) on local:
+```
+docker login ${REGISTRY} -u <PASTE USERNAME>
+password: <PASTE PASSWORD>
+```
+
+2. Link in your DNS zone's A record for used domain with server's IP for Certbot correct resolving.
+
+3. Prepare server via Ansible
+
+- `make ansible-build` - Build Ansible with configs.
+- `make ansible-playbook-test` - Run test task.
+- `make ansible-playbook-setup` - Setup new server. Run it once, or if soft installation tasks changed.
+- `make ansible-add-deploy-ssh` - Setup SSH key to user "deploy".
+- `make ansible-registry-login` - Login to Docker Registry at server on behalf of user "deploy". Interactive input...
+
+4. Build images for Delivery into Docker Registry
+
+Build - `make cd-build`, push to repo - `make cd-push`.
+
+5. Deploy via Makefile command
+
+For create new release version: `BUILD_NUMBER=1 make deploy`, for rollback: `BUILD_NUMBER=0 make rollback`.
+It will pull images from Registry to new directory, switch symlink on it and start services via Docker Compose. 
+Modify to your version number. Not to be confused BUILD_NUMBER with IMAGE_TAG.
+
+
+### Deploy to Heroku
+
+TODO
+
 ## Testing
 
 You can test requests when service is running in swagger web from route `localhost:3000/swagger/index.html`.
@@ -88,20 +146,16 @@ Register with /auth/sign-up, login with /auth/sign-in and use received token for
 
 You can run **unit tests** with helping Makefile command: `make api-test`
 
-Coverage: `todo`
-
-## Deploy
-
-todo
+Coverage: TODO fix
 
 ## TODO:
 - добавить пагинацию для хэндлеров GetAll - возвращающих коллекции (заголовками Pagination-, полями json и ответ 206 Partial Content)
 так же можно переделать на такой вариант - для getall вовзращать коллекцию идентификаторов. затем по get(ids) - возвращать нужные (опционально)
 - добавить настройки троттлинга запросов к API (aviddiviner/gin-limit, axiaoxin-com/ratelimiter middleware?) (ответ 429 Too Many Requests)
 - задеплоить сервис в heroku для демо
-- сделать provisioning конфигурации ansible чтоб на любую чистую виртуалку задеплоить по команде можно было для демо (опционально)
 - поправить мультистадийный докер образ на scratch
-- протестить линтеры
+- протестить линтеры 
+- запустить тесты в github actions
 
 ### Future 
 add and setup linters:

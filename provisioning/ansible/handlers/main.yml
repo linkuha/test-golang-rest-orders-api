@@ -1,0 +1,19 @@
+---
+- name: Restart Nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Restart MySQL
+  service:
+    name: mysql
+    state: restarted
+
+- name: Reload PostgreSQL
+  shell: pg_ctl reload
+
+- name: Restart PostgreSQL
+  shell: pg_ctl restart
+
+- name: Reload Nginx
+  shell: nginx -t && nginx -s reload

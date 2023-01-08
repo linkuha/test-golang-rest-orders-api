@@ -2,7 +2,7 @@ FROM golang:1.19-alpine
 
 MAINTAINER Alex Pudich <pudichas@gmail.com>
 
-COPY ./docker/common/wait-for-it.sh /usr/local/bin/wait-for-it
+COPY ./docker/common/wait-for-it/wait-for-it.sh /usr/local/bin/wait-for-it
 
 RUN set -ex \
     && chmod 555 /usr/local/bin/wait-for-it \

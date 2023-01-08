@@ -1,0 +1,10 @@
+---
+- hosts: app
+  remote_user: root
+  gather_facts: no
+  vars_files:
+    - ./vars/server.yml
+  tasks:
+    - name: Renew certs
+    - import_tasks: tasks/renew_certs.yml
+

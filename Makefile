@@ -14,16 +14,12 @@ rebuild: swag-api-v1 docker-build restart
 
 docker-up: ## docker up
 	docker-compose up -d
-
 docker-down: ## ..down and clean containers
 	docker-compose down --remove-orphans
-
 docker-down-clear: ## ..down and clean with volumes
 	docker-compose down -v --remove-orphans
-
 docker-pull: ## ..pull
 	docker-compose pull
-
 docker-build: ## ..build
 	docker-compose build
 
@@ -84,3 +80,62 @@ cover: ## make coverage report
 linter-hadolint: ## run linter for dockerfiles
 	git ls-files --exclude='Dockerfile*' --ignored | xargs docker run --rm -i hadolint/hadolint
 
+cd-build: api-build-image gateway-build-image db-build-image
+
+db-build-image:
+	docker --log-level=debug build --pull --file=docker/production/postgresql/Dockerfile --tag=${REGISTRY}/go-rest-api-postgres:${IMAGE_TAG} ./
+gateway-build-image:
+	docker --log-level=debug build --pull --file=docker/production/nginx-gateway/Dockerfile --tag=${REGISTRY}/go-rest-api-nginx:${IMAGE_TAG} ./
+api-build-image:
+	docker --log-level=debug build --pull --file=Dockerfile --tag=${REGISTRY}/go-rest-api-golang:${IMAGE_TAG} ./
+waiter-build-image:
+	docker --log-level=debug build --pull --file=docker/common/wait-for/Dockerfile --tag=${REGISTRY}/go-rest-api-wait:${IMAGE_TAG} ./
+
+cd-push: api-push-image gateway-push-image db-push-image
+
+db-push-image:
+	docker push ${REGISTRY}/go-rest-api-postgres:${IMAGE_TAG}
+gateway-push-image:
+	docker push ${REGISTRY}/go-rest-api-nginx:${IMAGE_TAG}
+api-push-image:
+	docker push ${REGISTRY}/go-rest-api-golang:${IMAGE_TAG}
+waiter-push-image:
+	docker push ${REGISTRY}/go-rest-api-wait:${IMAGE_TAG}
+
+ansible-build:
+	docker-compose build ansible
+ansible-console:
+	docker-compose run --rm ansible sh
+ansible-test-hosts:
+	docker-compose run --rm ansible ansible all -a "/bin/echo Hello, world!"
+ansible-playbook-test:
+	docker-compose run --rm ansible ansible-playbook run_test.yml
+ansible-add-deploy-ssh:
+	docker-compose run --rm ansible ansible-playbook run_add_deploy_ssh.yml
+ansible-registry-login:
+	docker-compose run --rm ansible ansible-playbook run_docker_login.yml
+ansible-playbook-setup:
+	docker-compose run --rm ansible ansible-playbook run_setup.yml
+ansible-site-facts:
+	docker-compose run --rm ansible ansible app -m setup
+
+deploy:
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'rm -rf api_${BUILD_NUMBER}'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'mkdir api_${BUILD_NUMBER}'
+	scp -o StrictHostKeyChecking=no -P ${DEPLOY_PORT} -i ${DEPLOY_KEY} docker-compose-production.yml deploy@${DEPLOY_HOST}:api_${BUILD_NUMBER}/docker-compose.yml
+	scp -o StrictHostKeyChecking=no -P ${DEPLOY_PORT} -i ${DEPLOY_KEY} .env.prod deploy@${DEPLOY_HOST}:api_${BUILD_NUMBER}/.env
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'cd api_${BUILD_NUMBER} && echo "REGISTRY=${REGISTRY}" >> .env'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'cd api_${BUILD_NUMBER} && echo "IMAGE_TAG=${IMAGE_TAG}" >> .env'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'cd api_${BUILD_NUMBER} && docker-compose pull'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'docker network inspect api-orders >/dev/null 2>&1 || docker network create --driver=bridge --subnet=172.30.25.0/27 --gateway=172.30.25.1 api-orders'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'cd api_${BUILD_NUMBER} && docker-compose up --build -d postgres'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'cd api_${BUILD_NUMBER} && docker-compose run --rm api /wait'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'cd api_${BUILD_NUMBER} && docker-compose up --build --remove-orphans -d'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'rm -rf go-rest-api'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'ln -sr api_${BUILD_NUMBER} go-rest-api'
+
+rollback:
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'cd api_${BUILD_NUMBER} && docker-compose pull'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'cd api_${BUILD_NUMBER} && docker-compose up --build --remove-orphans -d'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'rm -rf go-rest-api'
+	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'ln -sr api_${BUILD_NUMBER} go-rest-api'

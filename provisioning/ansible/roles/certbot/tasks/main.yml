@@ -1,0 +1,55 @@
+---
+- name: Update apt packages
+  apt:
+    update_cache: yes
+
+- name: Install Snap
+  apt:
+    name: snapd
+    state: present
+    update_cache: yes
+
+- name: Install snap module - core
+  shell: snap install core; snap refresh core
+
+- name: Install certbot via snap
+  shell: snap install --classic certbot
+
+- name: Prepare the Certbot command
+  file:
+    src: /snap/bin/certbot
+    dest: /usr/bin/certbot
+    state: link
+
+- name: Confirm plugin containment level
+  shell: snap set certbot trust-plugin-with-root=ok
+
+- name: Install correct DNS plugin
+  shell: snap install certbot-dns-cloudflare
+
+- name: Creates letsencrypt config directory
+  file:
+    path: /etc/letsencrypt
+    owner: root
+    group: root
+    mode: 0644
+    state: directory
+
+- name: Copy Certbot configuration
+  copy:
+    src: files/cli.ini
+    dest: /etc/letsencrypt/cli.ini
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Remove useless packages
+  apt:
+    autoclean: yes
+
+- name: Remove useless dependencies
+  apt:
+    autoremove: yes
+
+- name: Generate
+  import_tasks: generate_certs.yml

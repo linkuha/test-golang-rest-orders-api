@@ -1,0 +1,47 @@
+---
+- name: Check if certificate already exists (single)
+  stat:
+    path: /etc/letsencrypt/live/{{ item }}/cert.pem
+  register: letsencrypt_certs_single
+  loop: "{{ certbot_hosts_single|default([]) }}"
+  when: item | length > 0
+
+- name: Debug letsencrypt_certs_single
+  debug:
+    var: letsencrypt_certs_single
+
+- name: Check if certificate already exists (wildcard)
+  stat:
+    path: /etc/letsencrypt/live/{{ item }}/cert.pem
+  register: letsencrypt_certs_wildcard
+  loop: "{{ certbot_hosts_wildcard|default([]) }}"
+  when: item | length > 0
+
+- name: Debug letsencrypt_certs_wildcard
+  debug:
+    var: letsencrypt_certs_wildcard
+
+- name: Check if server is running
+  wait_for:
+    port: 80
+    timeout: 1
+  register: port_check
+  ignore_errors: yes
+
+- name: Up certbot standalone Apache
+  shell: "docker run -d --name apache -v /var/www/html:/usr/local/apache2/htdocs/ -p 80:80 httpd:2.4"
+  when: port_check.failed == true
+
+- name: Generate new certificate wildcard (with www.)
+  shell: "certbot certonly --non-interactive --agree-tos --email {{ certbot_email }} -d {{ item.item }} -d www.{{ item.item }}"
+  loop: "{{ letsencrypt_certs_wildcard.results }}"
+  when: not letsencrypt_certs_wildcard.skipped and not item.stat.exists
+
+- name: Generate new certificate single
+  shell: "certbot certonly --non-interactive --agree-tos --email {{ certbot_email }} -d {{ item.item }}"
+  loop: "{{ letsencrypt_certs_single.results }}"
+  when: not letsencrypt_certs_single.skipped and not item.stat.exists
+
+- name: Down certbot Apache
+  shell: "docker rm -f apache"
+  when: port_check.failed == true

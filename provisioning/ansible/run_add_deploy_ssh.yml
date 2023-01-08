@@ -1,0 +1,13 @@
+---
+- hosts: app
+  remote_user: root
+  become: yes
+  become_user: deploy
+  vars_files:
+    - ./vars/server.yml
+  tasks:
+    - name: Add user authorized key
+      ansible.posix.authorized_key:
+        user: deploy
+        state: present
+        key: "{{ lookup('file', '{{ ssh_public_key_file }}') }}"

@@ -16,13 +16,17 @@ import (
 )
 
 func Run(cfg *config.Config) {
-	logPath := cfg.Merged.LogDir + "/main.log"
-	logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		panic("Failure to open log file " + logPath)
+	if cfg.Merged.LogInFile {
+		logPath := cfg.Merged.LogDir + "/main.log"
+		logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			panic("Failure to open log file " + logPath)
+		}
+		defer logFile.Close()
+		logger.InitLogger(cfg.Merged.LogLevel, logFile)
+	} else {
+		logger.InitLogger(cfg.Merged.LogLevel, nil)
 	}
-	defer logFile.Close()
-	logger.InitLogger(cfg.Merged.LogLevel, logFile)
 
 	log.Info().Msg("Starting application...")
 	log.Debug().Msgf("Config dump: %#v\n", cfg)

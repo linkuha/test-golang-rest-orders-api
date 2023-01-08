@@ -34,6 +34,13 @@ services:
     ports:
       - "54321:5432"
 
+  ansible:
+    build:
+      context: provisioning
+      dockerfile: docker/ansible/Dockerfile
+    volumes:
+      - ./provisioning/ansible/logs:/ansible/logs
+
 volumes:
   api-orders-volume-postgres:
 

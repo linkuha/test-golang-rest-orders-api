@@ -1,0 +1,14 @@
+---
+# PS: it is example, and now allowed ansible_facts['distribution_release'] variable
+
+- name: Get Debian Version
+#  shell: sed </etc/os-release -ne 's/^VERSION_CODENAME=//p'
+  shell: lsb_release -cs
+  register: debian_version_code
+  ignore_errors: true
+  when: ansible_facts['distribution'] == 'Debian'
+
+- name: Echo version code
+  debug:
+    msg: "Debian VERSION_CODE: {{ debian_version_code.stdout }}"
+  when: ansible_facts['distribution'] == 'Debian'

@@ -1,0 +1,3 @@
+---
+swap_size: "{{ ((ansible_facts['memory_mb']['real']['total'] | int * 2) if (ansible_facts['memory_mb']['real']['total'] <= 1024) else 2048) }}M"
+swap_file: "/swap-{{ swap_size }}"

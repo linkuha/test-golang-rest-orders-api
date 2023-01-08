@@ -1,20 +1,49 @@
 version: '3.9'
 
 services:
+  gateway:
+    image: ${REGISTRY}/go-rest-api-nginx:${IMAGE_TAG}
+    restart: always
+    depends_on:
+      - api
+    networks:
+      api-orders:
+    ports:
+      - "80:80"
+      - "443:443"
+    tmpfs:
+      - /nginx-cache
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/html:/var/www/html:ro
+
   api:
-    build:
-      context: .
+    image: ${REGISTRY}/go-rest-api-golang:${IMAGE_TAG}
+    restart: always
     env_file:
-      - .env.prod
+      - .env
     environment:
-      APP_ENV: production
-      HTTP_LISTEN_PORT: 3000
+      WAIT_HOSTS: postgres:5432
     depends_on:
       - postgres
     networks:
       api-orders:
     ports:
       - "3030:3000"
+
+  postgres:
+    image: ${REGISTRY}/go-rest-api-postgres:${IMAGE_TAG}
+    env_file:
+      - .env
+    volumes:
+      - api-orders-volume-postgres:/var/lib/postgresql/data
+    networks:
+      api-orders:
+    ports:
+      - "54321:5432"
+
+volumes:
+  api-orders-volume-postgres:
 
 networks:
   api-orders:

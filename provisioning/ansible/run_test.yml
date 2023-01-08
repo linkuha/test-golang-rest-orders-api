@@ -1,0 +1,15 @@
+---
+- hosts: app
+  gather_facts: yes
+  vars_files:
+    - ./vars/server.yml
+    - ./vars/swap.yml
+  roles:
+    - test
+  tasks:
+    - name: Custom tasks
+      import_tasks: tasks/get_debian_ver.yml
+    - name: Print swap size
+      debug:
+        msg: "{{ swap_size }}"
+

@@ -1,0 +1,3 @@
+---
+- name: Renew certificates
+  shell: "certbot renew"

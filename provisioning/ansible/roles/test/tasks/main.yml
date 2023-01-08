@@ -1,0 +1,6 @@
+---
+- ping: ~
+
+- name: Echo
+  debug:
+    msg: "OK"
