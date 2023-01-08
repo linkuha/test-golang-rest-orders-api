@@ -153,7 +153,6 @@ Coverage: TODO fix
 так же можно переделать на такой вариант - для getall вовзращать коллекцию идентификаторов. затем по get(ids) - возвращать нужные (опционально)
 - добавить настройки троттлинга запросов к API (aviddiviner/gin-limit, axiaoxin-com/ratelimiter middleware?) (ответ 429 Too Many Requests)
 - задеплоить сервис в heroku для демо
-- поправить мультистадийный докер образ на scratch
 - протестить линтеры 
 - запустить тесты в github actions
 
