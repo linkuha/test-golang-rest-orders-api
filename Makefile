@@ -28,17 +28,17 @@ swag-api-v1: ## generate OpenAPI for api v1
 
 api-run: ## run app
 	go mod tidy && go mod download
-	CGO_ENABLED=0 go run -tags automigrate cmd/api/main.go -logdir ./log --
+	CGO_ENABLED=0 go run -tags automigrate cmd/apisrv/main.go -logdir ./log --
 
 api-build-run: ## build OpenAPI, build and run app
 	make swag-api-v1
-	CGO_ENABLED=0 go build -o bin/apisrv cmd/api/main.go
+	CGO_ENABLED=0 go build -o bin/apisrv cmd/apisrv/main.go
 	./bin/apisrv -logdir ./log --
 
 api-build-run-vendor: ## build OpenAPI, build with modules from vendor and run app
 	make swag-api-v1
 	go env -w CGO_ENABLED=0
-	go build -mod vendor -o bin/apisrv cmd/api/main.go
+	go build -mod vendor -o bin/apisrv cmd/apisrv/main.go
 	./bin/apisrv -logdir ./log --
 
 migrate-create: ## create dummy migrations file
