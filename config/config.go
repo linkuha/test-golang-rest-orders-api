@@ -120,11 +120,9 @@ func loadEnvFile(dir string) (config EnvParams, err error) {
 	viper.SetConfigFile(".env")
 
 	viper.AutomaticEnv()
+	viper.AllowEmptyEnv(true)
 
 	err = viper.ReadInConfig()
-	if err != nil {
-		panic("Fail reading .env file")
-	}
 
 	err = viper.Unmarshal(&config)
 	if err != nil {
