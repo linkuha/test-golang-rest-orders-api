@@ -29,7 +29,7 @@ func Run(cfg *config.Config) {
 	}
 
 	log.Info().Msg("Starting application...")
-	log.Debug().Msgf("Config dump: %#v\n", cfg)
+	log.Info().Msgf("Config dump: %#v\n", cfg)
 	if !cfg.EnvParams.FileLoaded {
 		log.Warn().Msg(".env file is not loaded")
 	}

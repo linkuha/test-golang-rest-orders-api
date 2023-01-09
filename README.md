@@ -132,7 +132,26 @@ Modify to your version number. Not to be confused BUILD_NUMBER with IMAGE_TAG.
 
 ### Deploy to Heroku
 
-TODO
+Install Heroku CLI
+
+`heroku login` - grant permissions to CLI to account via browser.
+
+Create app in https://dashboard.heroku.com/ and check is ID (e.g. my - test-golang-rest)
+
+I connected my GitHub repo to Heroku app, you can fork and do it.
+
+`heroku git:remote -a <ID>` - link directory with local git to heroku's git repo.
+
+If you connect own git repo, use section Deploy -> Manual deploy / Automatics, for pull changes from original repo.
+
+If not - commit changes locally and use `git push heroku master`.
+
+Add environment variables into section Settings -> Config Vars like in your .env.prod. 
+But DATABASE_URL will be set automatically, if you install PostgreSQL addon on Heroku (section Resources) and connect it to this app.
+
+Add env `BUILD_DIR=bin` to maintain the correct folder structure as on the local machine and Procfile declarations.
+
+After deploy and app was built, check logs - button More -> View logs
 
 ## Testing
 
