@@ -79,7 +79,7 @@ Supporting of DATABASE_URL was used for ability of easy deploy on Heroku.
 ### Build for production and Deploy
 
 1. Prepare configs
-Provide own env params in [.env.prod](./.env.prod) file (based on .env.sample) with production params (e.g., disable debug modes (GIN, logger), logging in file).
+Provide own env params in [.env.production](./.env.production) file (based on .env.sample) with production params (e.g., disable debug modes (GIN, logger), logging in file).
 For setup clean server, install Docker and pass SSH key to server will be using Ansible. 
 Modify next files for your specific variables (e.g. domain): `./provisioning/ansible/vars/*`. 
 And modify params of servers for deploy: `./provisioning/ansible/hosts.yml` (group of servers - app) based on hosts.yml.dist sample in same directory.
@@ -146,7 +146,7 @@ If you connect own git repo, use section Deploy -> Manual deploy / Automatics, f
 
 If not - commit changes locally and use `git push heroku master`.
 
-Add environment variables into section Settings -> Config Vars like in your .env.prod. 
+Add environment variables into section Settings -> Config Vars like in your .env.production. 
 But DATABASE_URL will be set automatically, if you install PostgreSQL addon on Heroku (section Resources) and connect it to this app.
 
 Add env `BUILD_DIR=bin` to maintain the correct folder structure as on the local machine and Procfile declarations.

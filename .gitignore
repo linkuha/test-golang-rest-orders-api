@@ -45,5 +45,6 @@ Thumbs.db
 # Environment
 .env*
 !.env.sample
+!.env.testing
 
 /bin/*

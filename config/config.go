@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
@@ -21,17 +22,17 @@ type AppFlags struct {
 
 type EnvParams struct {
 	FileLoaded  bool
-	Env         string `mapstructure:"APP_ENV"`
-	LogDir      string `mapstructure:"APP_LOG_DIR"`
-	LogLevel    string `mapstructure:"APP_LOG_LEVEL"`
-	Port        string `mapstructure:"LISTEN_PORT"`
-	Host        string `mapstructure:"API_HOST"`
-	PgHost      string `mapstructure:"POSTGRES_HOST"`
-	PgPort      string `mapstructure:"POSTGRES_PORT"`
-	PgUser      string `mapstructure:"POSTGRES_USER"`
-	PgPassword  string `mapstructure:"POSTGRES_PASSWORD"`
-	PgDB        string `mapstructure:"POSTGRES_DB"`
-	DatabaseURL string `mapstructure:"DATABASE_URL"`
+	Env         string `mapstructure:"APP_ENV" env:"APP_ENV"`
+	LogDir      string `mapstructure:"APP_LOG_DIR" env:"APP_LOG_DIR"`
+	LogLevel    string `mapstructure:"APP_LOG_LEVEL" env:"APP_LOG_LEVEL"`
+	Port        string `mapstructure:"LISTEN_PORT" env:"LISTEN_PORT"`
+	Host        string `mapstructure:"API_HOST" env:"API_HOST"`
+	PgHost      string `mapstructure:"POSTGRES_HOST" env:"POSTGRES_HOST"`
+	PgPort      string `mapstructure:"POSTGRES_PORT" env:"POSTGRES_PORT"`
+	PgUser      string `mapstructure:"POSTGRES_USER" env:"POSTGRES_USER"`
+	PgPassword  string `mapstructure:"POSTGRES_PASSWORD" env:"POSTGRES_PASSWORD"`
+	PgDB        string `mapstructure:"POSTGRES_DB" env:"POSTGRES_DB"`
+	DatabaseURL string `mapstructure:"DATABASE_URL" env:"DATABASE_URL"`
 }
 
 type FileParams struct {
@@ -110,9 +111,9 @@ func InitConfig(flags AppFlags) *Config {
 
 func getCurrentDir() string {
 	var dir string
-	currentPath, err := os.Executable()
+	currentPath, err := os.Getwd()
 	if err != nil {
-		panic("Cant read current executable path")
+		panic("Cant read current path")
 	}
 	dir = filepath.Dir(currentPath)
 	return dir
@@ -127,12 +128,20 @@ func loadEnvFile(dir string) (config EnvParams, err error) {
 
 	readErr := viper.ReadInConfig()
 
-	err = viper.Unmarshal(&config)
-	if err != nil {
+	if err = viper.Unmarshal(&config); err != nil {
+		// if key not present in .env file - then it will not be loaded from environment to struct
 		panic("Fail mapping configuration parameters (env)")
 	}
 	if readErr != nil {
-		config.FileLoaded = false
+		// its': config == (EnvParams{})
+		// try load all from natural environment
+		// we don't want to use viper.Get("APP_ENV") because you need to remember all the variables
+		// we need the config's IDE autocompleting
+		if err := cleanenv.ReadEnv(&config); err != nil {
+			panic("Fail mapping env params structure: " + err.Error())
+		}
+	} else {
+		config.FileLoaded = true
 	}
 
 	return config, nil
@@ -145,12 +154,11 @@ func loadYmlFile(configPath string) (config FileParams, err error) {
 
 	readErr := viper.ReadInConfig()
 
-	err = viper.Unmarshal(&config)
-	if err != nil {
+	if err = viper.Unmarshal(&config); err != nil {
 		panic("Fail mapping configuration parameters (yaml)")
 	}
-	if readErr != nil {
-		config.FileLoaded = false
+	if readErr == nil {
+		config.FileLoaded = true
 	}
 
 	return config, nil

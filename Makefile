@@ -1,6 +1,9 @@
 .DEFAULT_GOAL := help
 
+# env for migrate commands. NOTE! this affected to os.Getenv
 include .env
+# TODO for testing DB
+include .env.testing
 export
 
 help: ## Display this help screen
@@ -119,7 +122,7 @@ deploy:
 	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'rm -rf api_${BUILD_NUMBER}'
 	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'mkdir api_${BUILD_NUMBER}'
 	scp -o StrictHostKeyChecking=no -P ${DEPLOY_PORT} -i ${DEPLOY_KEY} docker-compose-production.yml deploy@${DEPLOY_HOST}:api_${BUILD_NUMBER}/docker-compose.yml
-	scp -o StrictHostKeyChecking=no -P ${DEPLOY_PORT} -i ${DEPLOY_KEY} .env.prod deploy@${DEPLOY_HOST}:api_${BUILD_NUMBER}/.env
+	scp -o StrictHostKeyChecking=no -P ${DEPLOY_PORT} -i ${DEPLOY_KEY} .env.production deploy@${DEPLOY_HOST}:api_${BUILD_NUMBER}/.env
 	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'cd api_${BUILD_NUMBER} && echo "REGISTRY=${REGISTRY}" >> .env'
 	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'cd api_${BUILD_NUMBER} && echo "IMAGE_TAG=${IMAGE_TAG}" >> .env'
 	ssh -o StrictHostKeyChecking=no -p ${DEPLOY_PORT} -i ${DEPLOY_KEY} deploy@${DEPLOY_HOST} 'cd api_${BUILD_NUMBER} && docker-compose pull'
