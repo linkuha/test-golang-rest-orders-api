@@ -147,7 +147,8 @@ If you connect own git repo, use section Deploy -> Manual deploy / Automatics, f
 If not - commit changes locally and use `git push heroku master`.
 
 Add environment variables into section Settings -> Config Vars like in your .env.production. 
-But DATABASE_URL will be set automatically, if you install PostgreSQL addon on Heroku (section Resources) and connect it to this app.
+But `DATABASE_URL` will be set automatically, if you install PostgreSQL addon on Heroku (section Resources) and connect it to this app.
+Don't set up `PORT` env, this is Heroku's responsibility.
 
 Add env `BUILD_DIR=bin` to maintain the correct folder structure as on the local machine and Procfile declarations.
 
