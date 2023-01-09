@@ -65,33 +65,41 @@ For example, generate dummy file for migrations, located in `database/migrations
 ### Build for development
 
 1. You can build and run app with help of Makefile: `make api-build-run`. 
-It will generate swag documentation, build binary and run with local installed compiler. 
-You must provide own env params like database connection in [.env](./.env) file (based on .env.sample). 
+
+It will generate swag documentation, build binary and run with local installed compiler.
+
+You must provide own env params like database connection in [.env](./.env) file (based on .env.sample).
+
 The app will parse this params via wide-known package Viper.
 
 PS. Фиксацию зависимостей в ./vendor для git можно производить через `go mod vendor`. Тогда билдить командой `make api-build-run-vendor`.
 
 2. You can build & run app and ready-to-use database (Postgres with enabled extension for UUID generating)
 for tests as production-like version of app with Docker Compose: `make up`. 
+
 In that case you must not provide env params for database, it will be overwritten in [docker-compose.yml](./docker-compose.yml).
-Supporting of DATABASE_URL was used for ability of easy deploy on Heroku.
+
+Supporting of `DATABASE_URL` was used for ability of easy deploy on Heroku.
 
 ### Build for production and Deploy
 
 1. Prepare configs
+
 Provide own env params in [.env.production](./.env.production) file (based on .env.sample) with production params (e.g., disable debug modes (GIN, logger), logging in file).
+
 For setup clean server, install Docker and pass SSH key to server will be using Ansible. 
-Modify next files for your specific variables (e.g. domain): `./provisioning/ansible/vars/*`. 
-And modify params of servers for deploy: `./provisioning/ansible/hosts.yml` (group of servers - app) based on hosts.yml.dist sample in same directory.
+* Modify next files for your specific variables (e.g. domain): `./provisioning/ansible/vars/*`. 
+* And modify params of servers for deploy: `./provisioning/ansible/hosts.yml` (group of servers - app) based on hosts.yml.dist sample in same directory.
 
-For deploy to server will be using Docker Registry and Makefile.
-Modify domain in gateway (nginx) image: `./docker/production/nginx-gateway/sites-enabled/api.conf`
+For deploy to server will be used Docker Registry and Makefile.
 
-Add OpenSSH keypair to `./provisioning/ssh_keys/` and name it as: `test_server_openssh_private_key` and `test_server_openssh_public_key`.
-This names using in Ansible configs for connection to server and setup soft on behalf of root. 
-This also using for upload private key to deployment server to user "deploy", for running not from root (but for simplify - here used the same keys).
+* Modify domain in gateway (nginx) image: `./docker/production/nginx-gateway/sites-enabled/api.conf`
+* Add OpenSSH keypair to `./provisioning/ssh_keys/` and name it as: `test_server_openssh_private_key` and `test_server_openssh_public_key`.
 
-Also export common vars of your deployment server and docker repo (replace for your `REGISTRY=DOMAIN[:PORT]`):
+PS. This key names using in Ansible configs for connection to server and setup soft on behalf of root. 
+This also using for upload private key to deployment server for user "deploy", to make deploy not from root (but for simplify - here used the same keys).
+
+* Export common vars of your deployment server and docker repo (replace for your `REGISTRY=DOMAIN[:PORT]`):
 ```
 export REGISTRY=docker.pudich.ru
 export IMAGE_TAG=1
@@ -103,7 +111,7 @@ chmod 600 ${DEPLOY_KEY}
 It keeps in terminal session and usable for Makefile commands.
 You can use constant IMAGE_TAG=1 for rebuild images and rewrite it, for no tracking version and disk space economy.
 
-Connect to your docker registry (own service / GitLab registry / DockerHub) on local:
+* Connect to your docker registry (own service / GitLab registry / DockerHub) on local:
 ```
 docker login ${REGISTRY} -u <PASTE USERNAME>
 password: <PASTE PASSWORD>
@@ -127,7 +135,7 @@ Build - `make cd-build`, push to repo - `make cd-push`.
 
 For create new release version: `BUILD_NUMBER=1 make deploy`, for rollback: `BUILD_NUMBER=0 make rollback`.
 It will pull images from Registry to new directory, switch symlink on it and start services via Docker Compose. 
-Modify to your version number. Not to be confused BUILD_NUMBER with IMAGE_TAG.
+Modify to your version number. Not to be confused `BUILD_NUMBER` with `IMAGE_TAG`.
 
 
 ### Deploy to Heroku
@@ -146,13 +154,33 @@ If you connect own git repo, use section Deploy -> Manual deploy / Automatics, f
 
 If not - commit changes locally and use `git push heroku master`.
 
-Add environment variables into section Settings -> Config Vars like in your .env.production. 
+Add environment variables into section Settings -> Config Vars (like in your .env.production). 
 But `DATABASE_URL` will be set automatically, if you install PostgreSQL addon on Heroku (section Resources) and connect it to this app.
+Copy `DATABASE_URL` as `HEROKU_DSN` to .env.heroku based on [.env.heroku.sample](./.env.heroku.sample) for migration commands.
 Don't set up `PORT` env, this is Heroku's responsibility.
 
 Add env `BUILD_DIR=bin` to maintain the correct folder structure as on the local machine and Procfile declarations.
 
-After deploy and app was built, check logs - button More -> View logs
+Don't forget make migrations on Heroku PostgreSQL.
+Before that create extension on Heroku DB for that open section More -> Run console. Run psql terminal and do query:
+```
+~$ psql $DATABASE_URL
+=> CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION
+=> \dx
+(check)
+(press q)
+=> exit
+```
+
+And now in local terminal run: `make heroku-migrate-up`. If conflict dirty - repeat after query in psql: 
+```SQL
+delete from schema_migrations where dirty != 'false';
+```
+
+Because this is not Dockerfile based app on heroku and app builds without tags by default (e.g. -tags automigrate = for include go:build commented file to compilation).
+
+After deploy and app was built, check logs - button More -> View logs.
 
 ## Testing
 
@@ -177,7 +205,6 @@ net stop winnat
 net start winnat
 ```
 
-
 ## TODO:
 - добавить пагинацию для хэндлеров GetAll - возвращающих коллекции (заголовками Pagination-, полями json и ответ 206 Partial Content)
 так же можно переделать на такой вариант - для getall вовзращать коллекцию идентификаторов. затем по get(ids) - возвращать нужные (опционально)
@@ -193,3 +220,13 @@ add and setup linters:
 * golangci-lint https://golangci-lint.run/usage/install/
 * линтеры sql ?
 * hadolint для dockerfiles
+
+
+## Demo
+
+Now my demos are running (working while I pay for it):
+
+* https://go-rest-test.pudich.ru/swagger/index.html - deployed on clean Selectel's VPS with help of Ansible and my own docker registry.
+* https://test-golang-rest.herokuapp.com/swagger/index.html#/ - deployed to Heroku and it's PostgreSQL paid addon.
+
+It works :)

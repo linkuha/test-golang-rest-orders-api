@@ -4,6 +4,7 @@
 include .env
 # TODO for testing DB
 include .env.testing
+include .env.heroku
 export
 
 help: ## Display this help screen
@@ -52,6 +53,12 @@ migrate-up: ## migrations apply
 
 migrate-down: ## migrations rollback
 	migrate -path database/migrations -database '$(DATABASE_URL)' down
+
+heroku-migrate-up: ## migrations apply on heroku
+	migrate -path database/migrations -database '$(HEROKU_DB_DSN)' up
+
+heroku-migrate-down: ## migrations apply on heroku
+	migrate -path database/migrations -database '$(HEROKU_DB_DSN)' down
 
 api-test: ## run tests for api
 	go test -v ./...
