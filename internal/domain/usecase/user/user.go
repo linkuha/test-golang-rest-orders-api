@@ -35,6 +35,11 @@ func (uc *UseCase) Create(ctx context.Context, user entity.User) (string, error)
 		return "", errs.NewErrorWrapper(errs.Validation, err, "user validation error")
 	}
 
+	exist, _ := uc.repo.GetByUsername(ctx, user.Username)
+	if exist != nil {
+		return "", errs.NewErrorWrapper(errs.Exist, nil, "username is already taken")
+	}
+
 	if err := user.BeforeCreate(uc.encryptor); err != nil {
 		return "", errs.NewErrorWrapper(errs.Internal, err, "encryptor error")
 	}
