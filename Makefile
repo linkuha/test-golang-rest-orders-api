@@ -32,14 +32,14 @@ api-run: ## run app
 
 api-build-run: ## build OpenAPI, build and run app
 	make swag-api-v1
-	CGO_ENABLED=0 go build -o apisrv cmd/api/main.go
-	./apisrv -logdir ./log --
+	CGO_ENABLED=0 go build -o bin/apisrv cmd/api/main.go
+	./bin/apisrv -logdir ./log --
 
 api-build-run-vendor: ## build OpenAPI, build with modules from vendor and run app
 	make swag-api-v1
 	go env -w CGO_ENABLED=0
-	go build -mod vendor -o apisrv cmd/api/main.go
-	./apisrv -logdir ./log --
+	go build -mod vendor -o bin/apisrv cmd/api/main.go
+	./bin/apisrv -logdir ./log --
 
 migrate-create: ## create dummy migrations file
 	migrate create -ext sql -dir database/migrations 'migrate_name'

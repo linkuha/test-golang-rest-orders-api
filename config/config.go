@@ -20,6 +20,7 @@ type AppFlags struct {
 }
 
 type EnvParams struct {
+	FileLoaded  bool
 	Env         string `mapstructure:"APP_ENV"`
 	LogDir      string `mapstructure:"APP_LOG_DIR"`
 	LogLevel    string `mapstructure:"APP_LOG_LEVEL"`
@@ -34,7 +35,8 @@ type EnvParams struct {
 }
 
 type FileParams struct {
-	Test string `mapstructure:"test_string"`
+	FileLoaded bool
+	Test       string `mapstructure:"test_string"`
 }
 
 type MergedParams struct {
@@ -45,10 +47,11 @@ type MergedParams struct {
 }
 
 type Config struct {
-	EnvParams  EnvParams
-	FileParams FileParams
-	flags      AppFlags
-	Merged     MergedParams
+	EnvParams        EnvParams
+	FileParams       FileParams
+	ConfigFileLoaded bool
+	flags            AppFlags
+	Merged           MergedParams
 }
 
 type stringFlag struct {
@@ -122,27 +125,34 @@ func loadEnvFile(dir string) (config EnvParams, err error) {
 	viper.AutomaticEnv()
 	viper.AllowEmptyEnv(true)
 
-	err = viper.ReadInConfig()
+	readErr := viper.ReadInConfig()
 
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		panic("Fail mapping configuration parameters (env)")
 	}
+	if readErr != nil {
+		config.FileLoaded = false
+	}
+
 	return config, nil
 }
 
 func loadYmlFile(configPath string) (config FileParams, err error) {
 	viper.SetConfigFile(configPath)
 
-	err = viper.ReadInConfig()
-	if err != nil {
-		panic("Fail reading configuration file " + configPath)
-	}
+	viper.SetDefault("test_string", "qwerty")
+
+	readErr := viper.ReadInConfig()
 
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		panic("Fail mapping configuration parameters (yaml)")
 	}
+	if readErr != nil {
+		config.FileLoaded = false
+	}
+
 	return config, nil
 }
 

@@ -148,6 +148,16 @@ You can run **unit tests** with helping Makefile command: `make api-test`
 
 Coverage: TODO fix
 
+## Help
+
+If error on Windows: listen tcp 0.0.0.0:<PORT>: bind: An attempt was made to access a socket in a way forbidden by its access permissions.
+```
+# PowerShell / cmd administrator:
+net stop winnat
+net start winnat
+```
+
+
 ## TODO:
 - добавить пагинацию для хэндлеров GetAll - возвращающих коллекции (заголовками Pagination-, полями json и ответ 206 Partial Content)
 так же можно переделать на такой вариант - для getall вовзращать коллекцию идентификаторов. затем по get(ids) - возвращать нужные (опционально)
