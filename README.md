@@ -227,6 +227,6 @@ add and setup linters:
 Now my demos are running (working while I pay for it):
 
 * https://go-rest-test.pudich.ru/swagger/index.html - deployed on clean Selectel's VPS with help of Ansible and my own docker registry.
-* https://test-golang-rest.herokuapp.com/swagger/index.html#/ - deployed to Heroku and it's PostgreSQL paid addon.
+* https://test-golang-rest.herokuapp.com/swagger/index.html#/ - deployed to Heroku with PostgreSQL paid addon.
 
 It works :)
