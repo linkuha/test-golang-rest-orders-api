@@ -21,12 +21,12 @@ import (
 // @name Authorization
 func (ctrl *Controller) ConfigureRoutes(cfg *config.Config) *gin.Engine {
 	// Swagger
-	docs.SwaggerInfo.Host = "localhost:" + cfg.EnvParams.Port
+	docs.SwaggerInfo.Host = cfg.EnvParams.Host
 
 	router := gin.New()
-
 	router.Use(requestid.New(), ctrl.customLogRequest)
 	//router.Use(gin.LoggerWithWriter(log.Logger, "/status", "/healthz"))
+	router.Use(gin.Recovery())
 
 	if cfg.EnvParams.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)

@@ -154,6 +154,7 @@ Coverage: TODO fix
 - добавить настройки троттлинга запросов к API (aviddiviner/gin-limit, axiaoxin-com/ratelimiter middleware?) (ответ 429 Too Many Requests)
 - задеплоить сервис в heroku для демо
 - протестить линтеры 
+- протестить команды и весь процесс деплоя с линукса
 - запустить тесты в github actions
 
 ### Future 

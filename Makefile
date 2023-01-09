@@ -88,8 +88,6 @@ gateway-build-image:
 	docker --log-level=debug build --pull --file=docker/production/nginx-gateway/Dockerfile --tag=${REGISTRY}/go-rest-api-nginx:${IMAGE_TAG} ./
 api-build-image:
 	docker --log-level=debug build --pull --file=Dockerfile --tag=${REGISTRY}/go-rest-api-golang:${IMAGE_TAG} ./
-waiter-build-image:
-	docker --log-level=debug build --pull --file=docker/common/wait-for/Dockerfile --tag=${REGISTRY}/go-rest-api-wait:${IMAGE_TAG} ./
 
 cd-push: api-push-image gateway-push-image db-push-image
 
@@ -99,8 +97,6 @@ gateway-push-image:
 	docker push ${REGISTRY}/go-rest-api-nginx:${IMAGE_TAG}
 api-push-image:
 	docker push ${REGISTRY}/go-rest-api-golang:${IMAGE_TAG}
-waiter-push-image:
-	docker push ${REGISTRY}/go-rest-api-wait:${IMAGE_TAG}
 
 ansible-build:
 	docker-compose build ansible

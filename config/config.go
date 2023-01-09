@@ -24,6 +24,7 @@ type EnvParams struct {
 	LogDir      string `mapstructure:"APP_LOG_DIR"`
 	LogLevel    string `mapstructure:"APP_LOG_LEVEL"`
 	Port        string `mapstructure:"LISTEN_PORT"`
+	Host        string `mapstructure:"API_HOST"`
 	PgHost      string `mapstructure:"POSTGRES_HOST"`
 	PgPort      string `mapstructure:"POSTGRES_PORT"`
 	PgUser      string `mapstructure:"POSTGRES_USER"`
