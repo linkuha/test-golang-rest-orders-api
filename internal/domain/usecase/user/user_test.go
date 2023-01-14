@@ -101,6 +101,7 @@ func TestCreate(t *testing.T) {
 	u.PasswordHash = "testpassword"
 
 	expected := "c401f9dc-1e68-4b44-82d9-3a93b09e3fe7"
+	repo.EXPECT().GetByUsername(ctx, u.Username).Return(nil, errs.RecordNotFound).Times(1)
 	repo.EXPECT().Store(ctx, u).Return(expected, nil).Times(1)
 
 	encryptor := mockService.NewPasswordEncryptor()
@@ -149,6 +150,7 @@ func TestCreateDbError(t *testing.T) {
 	}
 	u2 := u
 	u2.PasswordHash = "testpassword"
+	repo.EXPECT().GetByUsername(ctx, u.Username).Return(nil, errs.RecordNotFound).Times(1)
 	repo.EXPECT().Store(ctx, &u2).Return("", dbErr).Times(1)
 
 	encryptor := mockService.NewPasswordEncryptor()
