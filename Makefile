@@ -1,11 +1,4 @@
-.DEFAULT_GOAL := help
-
-# env for migrate commands. NOTE! this affected to os.Getenv
-include .env
-# TODO for testing DB
-include .env.testing
-include .env.heroku
-export
+.DEFAULT_GOAL := api-build
 
 help: ## Display this help screen
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -34,6 +27,9 @@ api-run: ## run app
 	go mod tidy && go mod download
 	CGO_ENABLED=0 go run -tags automigrate cmd/apisrv/main.go -logdir ./log --
 
+api-build: ## default build
+	CGO_ENABLED=0 go build -o bin/apisrv cmd/apisrv/main.go
+
 api-build-run: ## build OpenAPI, build and run app
 	make swag-api-v1
 	CGO_ENABLED=0 go build -o bin/apisrv cmd/apisrv/main.go
@@ -48,13 +44,13 @@ api-build-run-vendor: ## build OpenAPI, build with modules from vendor and run a
 migrate-create: ## create dummy migrations file
 	migrate create -ext sql -dir database/migrations 'migrate_name'
 
-migrate-up: ## migrations apply
+migrate-up: ## migrations apply (need to: include .env.testing, export)
 	migrate -path database/migrations -database '$(DATABASE_URL)' up
 
 migrate-down: ## migrations rollback
 	migrate -path database/migrations -database '$(DATABASE_URL)' down
 
-heroku-migrate-up: ## migrations apply on heroku
+heroku-migrate-up: ## migrations apply on heroku (need to: include .env.heroku, export)
 	migrate -path database/migrations -database '$(HEROKU_DB_DSN)' up
 
 heroku-migrate-down: ## migrations apply on heroku
