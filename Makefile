@@ -70,7 +70,7 @@ mock-testify-wincmd:
 	docker run --rm -v %cd%:/src -w /src/ vektra/mockery --keeptree --all
 
 mock-gomock:
-	mockgen.exe -source=internal/domain/service/passwordEncryptor.go \
+	./bin/mockgen -source=internal/domain/service/passwordEncryptor.go \
 	      -destination=internal/domain/service/mocks/mock_passwordEncryptor.go
 
 MOCKS_DESTINATION=internal/mocks
@@ -79,7 +79,7 @@ MOCKS_DESTINATION=internal/mocks
 mocks: internal/domain/repository/*/* ## generate mocks to ./mocks (for repositories)
 	@echo "Generating mocks..."
 	@rm -rf $(MOCKS_DESTINATION)
-	@for file in $^; do ./mockgen.exe -source=$$file -destination=$(MOCKS_DESTINATION)/$$file; done
+	@for file in $^; do ./bin/mockgen -source=$$file -destination=$(MOCKS_DESTINATION)/$$file; done
 .PHONY: mocks
 
 cover: ## make coverage report
