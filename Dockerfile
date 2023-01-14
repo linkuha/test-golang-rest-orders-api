@@ -20,7 +20,6 @@ WORKDIR /app
 
 COPY --from=build /app/apisrv ./
 COPY --from=build /wait /wait
-COPY /.env ./
 COPY /config/config.yml ./config/config.yml
 COPY /database ./database/
 
