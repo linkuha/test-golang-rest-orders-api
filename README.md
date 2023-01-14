@@ -1,7 +1,9 @@
 REST API of orders management ([pre-employment test](./ISSUE.md))
 
+[![Build Status](https://app.travis-ci.com/linkuha/test-golang-rest-orders-api.svg?branch=main)](https://app.travis-ci.com/linkuha/test-golang-rest-orders-api)
 [![License](https://badgen.net/badge/license/MIT/blue)](https://github.com/linkuha/test-golang-rest-orders-api/blob/main/LICENSE)
 [![Telegram](https://badgen.net/badge/icon/telegram?icon=telegram&label=@linkuha)](https://t.me/linkuha)
+
 
 DB: PostgreSQL
 

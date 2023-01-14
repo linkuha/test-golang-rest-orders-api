@@ -1,4 +1,10 @@
-.DEFAULT_GOAL := api-build
+.DEFAULT_GOAL := help
+
+# specific env for migrate/heroku. NOTE! this also affected os.Getenv
+include .env
+include .env.testing
+include .env.heroku
+export
 
 help: ## Display this help screen
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -44,13 +50,13 @@ api-build-run-vendor: ## build OpenAPI, build with modules from vendor and run a
 migrate-create: ## create dummy migrations file
 	migrate create -ext sql -dir database/migrations 'migrate_name'
 
-migrate-up: ## migrations apply (need to: include .env.testing, export)
+migrate-up: ## migrations apply
 	migrate -path database/migrations -database '$(DATABASE_URL)' up
 
 migrate-down: ## migrations rollback
 	migrate -path database/migrations -database '$(DATABASE_URL)' down
 
-heroku-migrate-up: ## migrations apply on heroku (need to: include .env.heroku, export)
+heroku-migrate-up: ## migrations apply on heroku (from .env.heroku)
 	migrate -path database/migrations -database '$(HEROKU_DB_DSN)' up
 
 heroku-migrate-down: ## migrations apply on heroku
