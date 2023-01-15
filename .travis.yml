@@ -4,4 +4,4 @@ go:
   - 1.19.x
 
 script:
-  - api-build
+  - make api-build
