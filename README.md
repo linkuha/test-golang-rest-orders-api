@@ -1,6 +1,8 @@
-REST API of orders management ([pre-employment test](./ISSUE.md))
+REST API of orders management ([pre-employment test](./ISSUE_RU.md))
 
-[![Build Status](https://app.travis-ci.com/linkuha/test-golang-rest-orders-api.svg?branch=main)](https://app.travis-ci.com/linkuha/test-golang-rest-orders-api)
+![GitHub Actions tests status](https://github.com/linkuha/test-golang-rest-orders-api/actions/workflows/go.yml/badge.svg)
+![Dockerfile build status](https://github.com/linkuha/test-golang-rest-orders-api/actions/workflows/docker-image.yml/badge.svg)
+[![TravisCI Build Status](https://app.travis-ci.com/linkuha/test-golang-rest-orders-api.svg?branch=main)](https://app.travis-ci.com/linkuha/test-golang-rest-orders-api)
 [![License](https://badgen.net/badge/license/MIT/blue)](https://github.com/linkuha/test-golang-rest-orders-api/blob/main/LICENSE)
 [![Telegram](https://badgen.net/badge/icon/telegram?icon=telegram&label=@linkuha)](https://t.me/linkuha)
 
@@ -17,44 +19,46 @@ You can use OpenAPI configuration for research from testing section below.
 
 ## Comments
 
-* Намерено выбран для маршрутизации фреймворк Джин (GIN).
-Хороший мультиплексор gorilla/mux имеет меньше возможностей, и к сожалению, переведён в архив до начала написания сервиса (декабрь 22), 
-поэтому не был выбран. Существует альтернатива labstack/echo.
-* Намерено выбрана стандартная либа для общения с БД (database/sql, драйвер lib/pq). 
-Можно использовать более мощный и удобный jackc/pgx и удобный fluent билдер запросов (masterminds/squirrel).
-Но это тестовый пример, этого достаточно.
-* Миграции подымаются автоматически при запуске приложения через golang-migrate/migrate/v4. 
-* Не использую ORM (gorm или другие), т.к. это не очень GO-friendly подход, тяреем по скорости (много рефлексии)
-* Сущность user намерено не соответствует ТЗ. Решил усложнить, отделить сущность профиля от кредов. 
-Нет нужды таскать с собой все данные, профиль может расширяться. В этом кейсе профиль можно создать другим этапом после регистрации.
-* Реализован middleware для авторизации запросов пользователя к API через JWT токен. Есть другой подход - хранение ID авторизационной сессии в куках.
-* Валидация в моделях, используется пакет go-ozzo/ozzo-validation/v4, чтобы не дублировать похожий код.
-* Для валидации на уровне биндинга структуры из запроса используется стандартные теги - валидатора GIN - go-playground/validator
-* В репозитории продукта входной аргумент - не модель, а DTO ProductUpdateInput, был сделан для возможности присылать только те поля,
-которые мы хотим изменить. Как альтернатива, в других малых моделях просто перезаписываются все поля.
-* По-хорошему, в хэндлеры должны передаваться на вход - DTO, а затем их несомые данные мапиться в сущности. 
-Это упростит изучение OpenAPI, т.к. сейчас не все поля обязательны и игнорируются. Но также наплодит
-много дополнительного кода. Поэтому здесь в основном просто передаются заведомо валидные сущности.
-* Не во всех хэндлерах логика вынесена в юзкейс, а используется репозиторий напрямую - доделать.
-* Написаны unit-тесты для слоя Entities (проверяется валидация моделей).
-* Написаны unit-тесты для слоя Repositories для работы с сущностью User (база мокнута через DATA-DOG/go-sqlmock).
-* Написаны unit-тесты для слоя Use Cases для работы с сущностью User (моки репозиториев через golang/mock).
-* Написаны integration-тесты для слоя Controllers для работы с сущностью Products. 
-Дальнейшее тестирование хендлеров - наплодит много кода, даже с учетом проработки табличных тестов.
-* Не нравится, что для тестов не используется реальная тестовая БД. Таким образом не проверяется само выполнение запросов/транзакций.
-* Проработаны кастомные типа ошибок, для клиента - более общие ошибки, корректные статусы ответов. 
-Для дебага - внутренние, с возможностью получения стека. 
-* Добавлен middleware для генерации и сохранении в хэдэр ответа - ID запроса (gin-contrib/requestid)
-* Реализован middleware для логирования времени исполнения запроса, его статуса. 
-Полезно, так как логируются клиентская и подробная внутренняя ошибки, с привязкой к request_id.
-* Добавлен проброс контекста в слой репозиториев, чтобы отменять запросы к БД при сбоях. 
-* Graceful shutdown.
+* **Router**. Intentionally selected for routing framework GIN `gin-gonic/gin`. There is an alternative to `labstack/echo`. 
+      A good `gorilla/mux` multiplexer has fewer features, and unfortunately was archived before the service was written (December 22).
+      All of them have support from swagger (`swaggo/swag`).
+* **Middleware**.
+  * Implemented middleware for authorizing user requests to API via JWT token. There is another approach - storing the authorization session ID / token in cookies.
+  * Added middleware for generating and saving response in header - request ID (`gin-contrib/requestid`)
+  * Implemented middleware for logging request execution time and its status. Useful, since client and detailed internal errors are logged, with reference to request_id.
+* **DB**.
+  * Intentionally selected standard lib for communicating with the database (`database/sql`, `lib/pq` driver).
+  * You can use the more powerful and convenient `jackc/pgx` and the convenient fluent query builder `masterminds/squirrel`.
+  * Migrations are raised automatically when the application is launched via `golang-migrate/migrate/v4`.
+  * There are a lot of ORM's (`go-gorm/gorm` or others), I don't use it because this is not a GO-friendly approach, we lose speed due to a lot of reflection.
+* **Logic**. 
+  * Logic place - in the user cases, but somewhere the repository is used directly in handlers, left it for todo.
+  * The User entity intentionally does not correspond to the test issue. I decided to complicate, to separate the essence of the profile from the credits.
+    There is no need to carry all the data with you every time, the profile can expand. In this case, the profile can be created in another step after registration.
+  * In an amicable way, DTO should be passed to the handlers inputs, and then their data being carried should be mapped into entities.
+      This will make it easier to learn OpenAPI, as now not all fields are required / ignored. But it also breeds a lot of extra code, left it for todo.
+  * In the product repository, the input argument is not a model, but a DTO ProductUpdateInput, was made to be able to send only those fields, which we want to change.
+      Alternatively, for other small entities simply overwrites all fields.
+* **Validation**. 
+  * Validation in models, `go-ozzo/ozzo-validation/v4` package is used in order not to duplicate boilerplate code.
+  * For validation at the structure binding level from the request, standard tags are used - the GIN validator - `go-playground/validator`
+* **Tests**.
+  * Unit tests for the Entities layer (validation of models is checked).
+  * Unit tests for the Repositories layer to work with the User entity (the database is mocked via `DATA-DOG/go-sqlmock`).
+  * Unit tests for the Use Cases layer to work with the User entity (mocking repositories via `golang/mock`).
+  * Integration tests for the Controllers layer to work with the Products entity.
+    Testing of handlers will generate a lot of code, even taking into account the development of tabular tests.
+  * I don't like that the real test database is not used for tests. Thus, the execution of SQL queries / transactions is not checked, left it for todo.
+* **Errors**. Custom types of errors worked out, for the client - more common errors, correct response statuses. For debugging - internal, with the ability to get a stack.
+* **Context**. 
+  * Added context forwarding into the repositories layer to cancel database queries on failures.
+  * Graceful shutdown.
 
 ## Development environment
 
 Install GO 1.19 on local machine https://go.dev/doc/install
 
-Install tools on local machine:
+Install tools on local machine with go:
 * swagger https://github.com/swaggo/swag for generating API documentation
 * migrate-tool  https://github.com/golang-migrate/migrate for make migrations
 ```
@@ -62,7 +66,9 @@ go install github.com/swaggo/swag/cmd/swag@latest
 go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 ```
 
-PS: see [Makefile](./Makefile) for handy useful short commands (e.g. for build/run/test), get help with `make help` command.
+Install tools manually into ./bin directory: mockgen, ngrok (optionally).
+
+PS: see [Makefile](./Makefile) for handy useful short commands (e.g. for build, run, test), get help with `make help` command.
 
 For example, generate dummy file for migrations, located in `database/migrations` directory: `make migrate-create`.
 
@@ -210,19 +216,15 @@ net start winnat
 ```
 
 ## TODO:
-- добавить пагинацию для хэндлеров GetAll - возвращающих коллекции (заголовками Pagination-, полями json и ответ 206 Partial Content)
-так же можно переделать на такой вариант - для getall вовзращать коллекцию идентификаторов. затем по get(ids) - возвращать нужные (опционально)
-- добавить настройки троттлинга запросов к API (aviddiviner/gin-limit, axiaoxin-com/ratelimiter middleware?) (ответ 429 Too Many Requests)
-- протестить линтеры 
-- протестить команды и весь процесс деплоя с линукса
-- запустить тесты в github actions
-
-### Future 
-add and setup linters:
-* dotenv-linter https://github.com/dotenv-linter/dotenv-linter
-* golangci-lint https://golangci-lint.run/usage/install/
-* линтеры sql ?
-* hadolint для dockerfiles
+- add pagination to GetAll handlers - (headers Pagination-, pages fields in json, response 206 Partial Content)
+or another variant - return collections of identifiers, than by get(ids) - return requested
+- add requests throttling (aviddiviner/gin-limit, axiaoxin-com/ratelimiter middleware?) (response 429 Too Many Requests)
+- add linters
+  * dotenv-linter https://github.com/dotenv-linter/dotenv-linter
+  * golangci-lint https://golangci-lint.run/usage/install/
+  * sql linters
+  * dockerfile linters (hadolint)
+- test commands and deploy from OS linux
 
 
 ## Demo

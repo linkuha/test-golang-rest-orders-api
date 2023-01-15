@@ -22,7 +22,7 @@ jobs:
         go-version: 1.19
 
     - name: Build
-      run: go build -o bin/apisrv cmd/apisrv/main.go
+      run: CGO_ENABLED=0 go build -o bin/apisrv cmd/apisrv/main.go
 
     - name: Test
       run: go test -v ./...
